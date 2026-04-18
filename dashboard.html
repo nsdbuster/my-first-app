@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Nandkumar Deshpande · Health Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#04101f;--surf:#091a30;--bdr:#172d4a;
+  --accent:#00c9a7;--red:#ff4040;--warn:#ffaa00;
+  --blue:#3d8fff;--purple:#a78bfa;--saffron:#ff9933;
+  --text:#d8e6f2;--muted:#4d6a88;--white:#ffffff;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;min-height:100vh}
+button{cursor:pointer;font-family:inherit;transition:all .18s}
+input,textarea{font-family:inherit}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:#172d4a;border-radius:2px}
+#app{max-width:780px;margin:0 auto;padding:14px 12px 80px}
+.fw{font-weight:800}
+
+/* Header */
+.hdr{background:linear-gradient(135deg,#071526,#0b2040,#0f2d55);border:1px solid var(--bdr);border-radius:18px;padding:16px;margin-bottom:11px;position:relative;overflow:hidden}
+.hdr::before{content:'';position:absolute;top:-30px;right:-30px;width:180px;height:180px;background:radial-gradient(circle,rgba(255,153,51,.09),transparent 70%);pointer-events:none}
+.pills{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+.pill{background:rgba(0,0,0,.35);border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;color:var(--white)}
+.pill em{font-style:normal;font-size:9px;color:var(--muted);margin-left:3px}
+
+/* Date nav */
+.dnav{margin-top:11px;background:rgba(0,0,0,.3);border-radius:12px;padding:10px 12px}
+.dnav-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.nbtn{background:#0d2040;border:1px solid var(--bdr);border-radius:8px;padding:6px 14px;color:var(--text);font-size:20px;line-height:1}
+.nbtn:disabled{opacity:.25;cursor:default}
+.dctr{text-align:center;flex:1}
+
+/* Tabs */
+.tabs{display:flex;gap:5px;margin-bottom:11px}
+.tab{flex:1;padding:9px 2px;font-size:9.5px;font-weight:700;border-radius:11px;border:1px solid var(--bdr);background:var(--surf);color:var(--muted);text-align:center;line-height:1.5}
+.tab.on{border:none;background:var(--accent);color:#000}
+
+/* Card */
+.card{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:13px 14px;margin-bottom:11px}
+
+/* Progress bar */
+.pbar{background:#040e1c;border-radius:999px;height:9px;overflow:hidden;margin-top:8px}
+.pfill{height:100%;border-radius:999px;transition:width .4s}
+
+/* Task row */
+.trow{border-radius:11px;padding:11px 12px;margin-bottom:6px}
+.trow-inner{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.trow.future .trow-inner{cursor:default}
+.tick{width:22px;height:22px;border-radius:6px;flex-shrink:0;border:2px solid #1a3050;background:transparent;display:flex;align-items:center;justify-content:center;margin-top:2px;font-size:13px;font-weight:900;color:#000;transition:all .15s}
+.glc-row{display:flex;gap:8px;margin-top:9px;padding-left:32px}
+.glc-in{background:#0a1f38;border:1px solid rgba(244,114,182,.4);border-radius:8px;padding:6px 11px;font-size:13px;color:var(--white);width:135px;outline:none}
+.glc-btn{background:#f472b6;color:#000;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;border:none}
+.chip{font-size:11px;font-weight:700;background:rgba(244,114,182,.15);color:#f472b6;padding:1px 7px;border-radius:4px;margin-left:6px}
+
+/* Info box */
+.ibox{border-radius:10px;padding:9px 14px;margin-bottom:11px;font-size:12px;line-height:1.6}
+
+/* Section label */
+.lbl{font-size:10px;color:var(--muted);letter-spacing:2.5px;font-weight:700;margin-bottom:10px}
+.lbl.mt{margin-top:18px}
+
+/* Health rows */
+.hrow{border-radius:12px;padding:12px 13px;margin-bottom:8px}
+
+/* Glucose cards */
+.gcrd{background:var(--surf);border-radius:12px;padding:13px 14px;margin-bottom:9px}
+
+/* Notes section */
+.notes-box{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:14px;margin-top:18px}
+.notes-ta{width:100%;background:#040e1c;border:1px solid var(--bdr);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--text);line-height:1.6;resize:vertical;min-height:110px;max-height:250px;outline:none}
+.notes-ta:focus{border-color:var(--accent)}
+.notes-ta[readonly]{opacity:.65;cursor:default}
+.notes-foot{display:flex;justify-content:space-between;align-items:center;margin-top:7px}
+.cc{font-size:11px;color:var(--muted)}
+.cc.near{color:var(--warn)}
+.cc.full{color:var(--red)}
+
+/* Submit section */
+.sub-wrap{margin-top:18px;border-top:1px solid var(--bdr);padding-top:18px}
+.summary-box{background:rgba(0,201,167,.07);border:1px solid rgba(0,201,167,.25);border-radius:12px;padding:13px 14px;margin-bottom:14px}
+.sub-btn{width:100%;padding:15px;font-size:16px;font-weight:800;border-radius:14px;background:linear-gradient(135deg,var(--accent),#34d399);color:#000;border:none;letter-spacing:.2px}
+.sub-btn:active{transform:scale(.98)}
+.submitted-banner{background:rgba(0,201,167,.08);border:1px solid rgba(0,201,167,.3);border-radius:14px;padding:16px;text-align:center;margin-bottom:14px}
+.note-preview{background:rgba(0,0,0,.3);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--muted);line-height:1.6;font-style:italic;border-left:3px solid var(--bdr);margin-bottom:14px}
+.next-day-btn{width:100%;padding:12px;font-size:14px;font-weight:700;border-radius:12px;background:#0d2040;color:var(--text);border:1px solid var(--bdr)}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#0b2040;border:1px solid var(--accent);border-radius:18px;padding:24px;max-width:400px;width:100%;text-align:center}
+.modal-stats{display:flex;gap:10px;justify-content:center;margin:14px 0;flex-wrap:wrap}
+.mstat{background:rgba(0,201,167,.1);border:1px solid rgba(0,201,167,.25);border-radius:10px;padding:8px 14px}
+.mbtn-p{width:100%;padding:13px;font-size:15px;font-weight:800;border-radius:12px;background:var(--accent);color:#000;border:none;margin-bottom:8px}
+.mbtn-s{width:100%;padding:11px;font-size:13px;font-weight:700;border-radius:12px;background:transparent;color:var(--muted);border:1px solid var(--bdr)}
+
+/* History rows */
+.hstrow{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:13px 14px;margin-bottom:8px;cursor:pointer}
+.hstrow.sel{background:rgba(0,201,167,.07);border-color:var(--accent)}
+.badge{font-size:8.5px;font-weight:800;padding:2px 7px;border-radius:4px;margin-left:5px}
+.badg-today{background:var(--accent);color:#000}
+.badg-wknd{background:rgba(167,139,250,.2);color:#a78bfa}
+.badg-done{background:rgba(0,201,167,.2);color:var(--accent)}
+.mbar{background:#040e1c;border-radius:999px;height:5px;margin-top:10px;overflow:hidden}
+
+/* Med rows */
+.mrow{background:var(--surf);border:1px solid var(--bdr);border-radius:11px;padding:12px 13px;margin-bottom:8px;cursor:pointer;display:flex;gap:10px;align-items:center}
+.srow{border-radius:11px;padding:12px 13px;margin-bottom:8px;cursor:pointer;display:flex;gap:10px;align-items:flex-start}
+.pbadge{font-size:7.5px;font-weight:800;padding:2px 5px;border-radius:3px;color:#000}
+.warnbox{background:rgba(255,64,64,.07);border:1px solid rgba(255,64,64,.3);border-radius:11px;padding:11px 13px;margin-bottom:12px;font-size:12px;color:#ff9999;line-height:1.65}
+
+/* Learning from Yesterday */
+.lbox{background:linear-gradient(135deg,rgba(255,153,51,.1),rgba(255,200,50,.05));border:1px solid rgba(255,153,51,.4);border-left:4px solid var(--saffron);border-radius:14px;padding:15px 16px;margin-bottom:14px}
+.lbox-hdr{display:flex;align-items:center;gap:9px;margin-bottom:11px;border-bottom:1px solid rgba(255,153,51,.2);padding-bottom:9px}
+.lbox-icon{font-size:20px;line-height:1}
+.lbox-ttl{font-size:10px;font-weight:700;letter-spacing:2.5px;color:var(--saffron)}
+.lbox-date{font-size:10px;color:rgba(255,153,51,.6);margin-left:auto}
+.lbox-para{font-size:13px;color:#d4a040;line-height:1.75;margin-bottom:8px}
+.lbox-para:last-of-type{margin-bottom:0}
+.lbox-tag{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:4px;margin:8px 4px 0 0;letter-spacing:.5px}
+.lbox-footer{font-size:10.5px;color:rgba(255,153,51,.5);margin-top:10px;font-style:italic}
+.lbox-empty{text-align:center;padding:16px 0;font-size:12px;color:var(--muted);font-style:italic}
+
+/* Health Progress charts */
+.chart-wrap{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:14px;margin-bottom:14px;overflow:hidden}
+.chart-title{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:10px}
+.chart-canvas{width:100%;border-radius:8px;display:block}
+.chart-legend{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap}
+.chart-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.chart-leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.chart-no-data{text-align:center;padding:30px 0;font-size:12px;color:var(--muted);font-style:italic}
+/* Editable health values */
+.hval-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.hval-input{background:#040e1c;border:1px solid var(--bdr);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:700;color:var(--white);width:100px;text-align:right;outline:none}
+.hval-input:focus{border-color:var(--accent)}
+.hval-save{background:var(--accent);color:#000;border:none;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700;margin-top:2px;cursor:pointer}
+/* Progress includes meds */
+.prog-detail{display:flex;gap:12px;margin-top:6px;flex-wrap:wrap}
+.prog-seg{font-size:11px;color:var(--muted)}
+.prog-seg strong{color:var(--white)}
+/* HbA1c / HOMA cards */
+.labs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.lab-card{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:12px 13px}
+.lab-card.homa{grid-column:1/-1}
+.lab-val{font-size:24px;font-weight:900;margin:4px 0}
+.lab-tgt{font-size:10px;color:var(--accent)}
+.lab-inp-row{display:flex;gap:6px;margin-top:8px}
+.lab-inp{background:#040e1c;border:1px solid var(--bdr);border-radius:7px;padding:5px 10px;font-size:13px;color:var(--white);flex:1;outline:none}
+.lab-inp:focus{border-color:var(--accent)}
+.lab-btn{background:#38bdf8;color:#000;border:none;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer}
+/* Stage rows enhanced */
+.stage-row{border-radius:11px;padding:12px 14px;margin-bottom:9px}
+.stage-title{font-size:13px;font-weight:800;margin-bottom:7px}
+.stage-vals{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:7px}
+.stage-val{background:rgba(0,0,0,.25);border-radius:7px;padding:4px 10px;text-align:center;flex:1;min-width:70px}
+.stage-val-num{font-size:14px;font-weight:800}
+.stage-val-lbl{font-size:9px;color:var(--muted);letter-spacing:.5px;margin-top:1px}
+.stage-note{font-size:11.5px;line-height:1.55;opacity:.8}
+footer{border-top:1px solid var(--bdr);margin-top:22px;padding-top:12px;text-align:center;font-size:10.5px;color:#192f4a;line-height:2}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div style="font-size:9px;color:var(--saffron);letter-spacing:3px;font-weight:700;margin-bottom:3px">METABOLIC HEALTH · DAILY PLANNER</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-size:22px;font-weight:900;color:var(--white);line-height:1">Nandkumar Deshpande</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.8">
+          Age 60 · Thane · T2D · Cardiac Stent · CRP=13<br>
+          <span style="color:var(--saffron)">🕉 Gurucharitra</span> &nbsp;·&nbsp;
+          <span style="color:var(--purple)">💼 Semiconductor</span>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div id="hpct" style="font-size:22px;font-weight:900">0%</div>
+        <div style="font-size:9px;color:var(--muted)">today</div>
+      </div>
+    </div>
+    <div class="pills">
+      <div class="pill">105.2 kg<em>Wt</em></div>
+      <div class="pill">BMI 40.7</div>
+      <div class="pill">Bio Age 78<em>⚠</em></div>
+      <div class="pill">VFat 30%<em>🚨</em></div>
+      <div class="pill">CRP 13<em>🔴</em></div>
+    </div>
+    <!-- Date navigator -->
+    <div class="dnav">
+      <div class="dnav-row">
+        <button class="nbtn" id="btnPrev">&#8249;</button>
+        <div class="dctr">
+          <div id="dMain" style="font-size:13px;font-weight:800;color:var(--white)"></div>
+          <div id="dSub" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
+        </div>
+        <button class="nbtn" id="btnNext">&#8250;</button>
+      </div>
+      <div id="dNote"></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab on"  data-tab="tracker">✅<br>Tracker</button>
+    <button class="tab"     data-tab="glucose">📊<br>Glucose</button>
+    <button class="tab"     data-tab="health">🩺<br>Health</button>
+    <button class="tab"     data-tab="meds">💊<br>Medicines</button>
+    <button class="tab"     data-tab="history">📅<br>History</button>
+    <button class="tab"     data-tab="progress">📈<br>Progress</button>
+  </div>
+
+  <!-- PANELS -->
+  <div id="p-tracker"></div>
+  <div id="p-glucose"  style="display:none"></div>
+  <div id="p-health"   style="display:none"></div>
+  <div id="p-meds"     style="display:none"></div>
+  <div id="p-history"  style="display:none"></div>
+  <div id="p-progress" style="display:none"></div>
+
+  <footer>Nandkumar Deshpande · Metabolic Health Planner · April 2026<br>
+  <span style="color:#0f1f30">Saved on this device · Submit each day · Browse history</span></footer>
+</div>
+
+<!-- SUBMIT MODAL -->
+<div class="overlay" id="modal" style="display:none">
+  <div class="modal">
+    <div id="mIcon" style="font-size:42px;margin-bottom:10px"></div>
+    <div id="mTitle" style="font-size:18px;font-weight:800;color:var(--white);margin-bottom:6px"></div>
+    <div id="mBody"  style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:4px"></div>
+    <div class="modal-stats" id="mStats"></div>
+    <button class="mbtn-p" id="mNext"></button>
+    <button class="mbtn-s" id="mStay">Stay on this day</button>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────
+const CAT={
+  wake:     {c:"#fbbf24",l:"WAKE UP"},
+  spiritual:{c:"#ff9933",l:"SPIRITUAL"},
+  domestic: {c:"#86efac",l:"HOME ACTIVITY"},
+  health:   {c:"#00c9a7",l:"HEALTH"},
+  glucose:  {c:"#f472b6",l:"GLUCOSE CHECK"},
+  medicine: {c:"#38bdf8",l:"MEDICINE"},
+  food:     {c:"#a3e635",l:"NUTRITION"},
+  work:     {c:"#a78bfa",l:"WORK"},
+  exercise: {c:"#fb923c",l:"EXERCISE"},
+  walk:     {c:"#34d399",l:"WALK"},
+  dental:   {c:"#c084fc",l:"DENTAL CARE"},
+  media:    {c:"#e879f9",l:"TV/YOUTUBE"},
+  rest:     {c:"#5d8aaa",l:"WIND DOWN"},
+  sleep:    {c:"#3d5a8a",l:"SLEEP"},
+};
+
+const WD=[
+  {id:"w01",t:"5:00 AM",cat:"wake",    txt:"Wake up · 2 glasses warm water (lemon optional)"},
+  {id:"w02",t:"5:10 AM",cat:"wake",    txt:"Bath & morning grooming (30 min)"},
+  {id:"w03",t:"5:40 AM",cat:"spiritual",txt:"🕉 Gurucharitra reading (15 min — prayer included)"},
+  {id:"w04",t:"5:55 AM",cat:"domestic",txt:"🌿 Terrace cleaning · gardening · home maintenance (50–60 min)"},
+  {id:"w05",t:"6:55 AM",cat:"glucose", txt:"📊 Log FASTING glucose in Glucose tab → Target: <110 mg/dL"},
+  {id:"w06",t:"7:00 AM",cat:"health",  txt:"100 ml homemade kefir"},
+  {id:"w07",t:"7:05 AM",cat:"medicine",txt:"Morning prescribed medicines"},
+  {id:"w08",t:"7:10 AM",cat:"medicine",txt:"Morning supplements — CoQ10 · Omega-3 · D3+K2"},
+  {id:"w09",t:"7:20 AM",cat:"food",    txt:"Breakfast — almonds first · protein (eggs/paneer) · carbs last · 50g pomegranate arils after"},
+  {id:"w10",t:"8:05 AM",cat:"health",  txt:"☀️ Terrace sunlight 10–15 min (after 8 AM in Thane)"},
+  {id:"w11",t:"8:20 AM",cat:"walk",    txt:"Post-breakfast walk 15 min"},
+  {id:"w12",t:"9:15 AM",cat:"glucose", txt:"📊 Log POST-BREAKFAST glucose in Glucose tab → Target: <140 mg/dL"},
+  {id:"w13",t:"9:30 AM",cat:"work",    txt:"💼 Semiconductor work — calls, meetings, emails"},
+  {id:"w14",t:"10:30 AM",cat:"health", txt:"Hydration · 500 ml water · 5 min walk"},
+  {id:"w15",t:"12:50 PM",cat:"walk",   txt:"Pre-lunch walk 10 min + psyllium husk in water"},
+  {id:"w16",t:"1:00 PM",cat:"food",    txt:"Lunch — salad first · protein · dal · max 1 small jowar roti · NO rice"},
+  {id:"w17",t:"1:50 PM",cat:"walk",    txt:"Post-lunch walk 15 min — most powerful glucose disposal habit"},
+  {id:"w18",t:"2:10 PM",cat:"work",    txt:"💼 Work resumes — calls, meetings"},
+  {id:"w19",t:"3:00 PM",cat:"glucose", txt:"📊 Log POST-LUNCH glucose in Glucose tab → Target: <140 mg/dL"},
+  {id:"w20",t:"3:30 PM",cat:"food",    txt:"Snack — 7–10 walnut halves + 1 amla · 500 ml water"},
+  {id:"w21",t:"4:30 PM",cat:"work",    txt:"💼 Work continues — focus / emails"},
+  {id:"w22",t:"5:30 PM",cat:"food",    txt:"100 ml fresh beet root juice — nitric oxide window"},
+  {id:"w23",t:"6:00 PM",cat:"media",   txt:"📺 TV · YouTube · Movies — knowledge (45–60 min)"},
+  {id:"w24",t:"7:00 PM",cat:"spiritual",txt:"🕉 Gurucharitra reading — Evening session (15 min)"},
+  {id:"w25",t:"7:20 PM",cat:"medicine",txt:"Evening prescribed medicines"},
+  {id:"w26",t:"7:25 PM",cat:"medicine",txt:"Evening supplements — Berberine · ALA · Magnesium · Chromium"},
+  {id:"w27",t:"7:35 PM",cat:"food",    txt:"Dinner — sabzi + dal · NO roti · NO rice · carbs <20g"},
+  {id:"w28",t:"8:20 PM",cat:"walk",    txt:"Post-dinner walk 20 min — critical for overnight glucose control"},
+  {id:"w29",t:"8:45 PM",cat:"media",   txt:"📺 Light TV / YouTube 30–40 min"},
+  {id:"w30",t:"9:30 PM",cat:"health",  txt:"100 ml kefir (optional) · screens off"},
+  {id:"w31",t:"9:45 PM",cat:"exercise",txt:"🚴 Cycling — 20–30 min at relaxed pace"},
+  {id:"w32",t:"10:15 PM",cat:"glucose",txt:"📊 Log PRE-SLEEP glucose in Glucose tab → Target: 90–110 mg/dL"},
+  {id:"w33",t:"10:20 PM",cat:"dental", txt:"🦷 Water flossing — 2–3 min · entire family"},
+  {id:"w34",t:"10:25 PM",cat:"rest",   txt:"Hygiene · dim lights · cool room · no phone in bed"},
+  {id:"w35",t:"10:30 PM",cat:"sleep",  txt:"Sleep — 7–8 hrs"},
+];
+
+const WE=[
+  {id:"e01",t:"5:00 AM",cat:"wake",    txt:"Wake up · 2 glasses warm water"},
+  {id:"e02",t:"5:10 AM",cat:"wake",    txt:"Bath & morning grooming (30 min)"},
+  {id:"e03",t:"5:40 AM",cat:"spiritual",txt:"🕉 Gurucharitra reading (15 min)"},
+  {id:"e04",t:"5:55 AM",cat:"domestic",txt:"🌿 Lighter weekend activity — terrace / garden (30–40 min)"},
+  {id:"e05",t:"6:40 AM",cat:"glucose", txt:"📊 Log FASTING glucose in Glucose tab → Target: <110 mg/dL"},
+  {id:"e06",t:"6:50 AM",cat:"health",  txt:"100 ml kefir · medicines · CoQ10 + Omega-3 + D3"},
+  {id:"e07",t:"7:00 AM",cat:"food",    txt:"Light pre-ride breakfast — almonds · 2 eggs or paneer · 1 fruit"},
+  {id:"e08",t:"7:45 AM",cat:"domestic",txt:"🌿 Garden / terrace — let breakfast settle before ride"},
+  {id:"e09",t:"8:00 AM",cat:"health",  txt:"☀️ Terrace sunlight 10–15 min"},
+  {id:"e10",t:"8:15 AM",cat:"exercise",txt:"🏍 Bike riding — weekend morning leisure ride"},
+  {id:"e11",t:"9:45 AM",cat:"health",  txt:"Post-ride recovery — 500 ml water · rest 20 min"},
+  {id:"e12",t:"10:10 AM",cat:"glucose",txt:"📊 Log POST-EXERCISE glucose in Glucose tab → Target: 90–140 mg/dL"},
+  {id:"e13",t:"10:30 AM",cat:"work",   txt:"💼 Light weekend work if needed"},
+  {id:"e14",t:"11:30 AM",cat:"media",  txt:"📺 Movies / YouTube (1–1.5 hrs)"},
+  {id:"e15",t:"12:50 PM",cat:"walk",   txt:"Pre-lunch walk 10 min + psyllium husk"},
+  {id:"e16",t:"1:00 PM",cat:"food",    txt:"Lunch — salad · protein · dal · max 1 tiny jowar roti · no rice"},
+  {id:"e17",t:"1:50 PM",cat:"walk",    txt:"Post-lunch walk 15 min"},
+  {id:"e18",t:"2:10 PM",cat:"media",   txt:"📺 Afternoon movie / YouTube (1–2 hrs)"},
+  {id:"e19",t:"3:00 PM",cat:"glucose", txt:"📊 Log POST-LUNCH glucose in Glucose tab → Target: <140 mg/dL"},
+  {id:"e20",t:"4:00 PM",cat:"food",    txt:"Snack — almonds + walnuts · 500 ml water"},
+  {id:"e21",t:"4:30 PM",cat:"domestic",txt:"🌿 Evening garden / terrace rounds"},
+  {id:"e22",t:"5:30 PM",cat:"exercise",txt:"Light stretching / yoga — 20 min"},
+  {id:"e23",t:"5:35 PM",cat:"food",    txt:"100 ml fresh beet root juice — nitric oxide window"},
+  {id:"e24",t:"7:00 PM",cat:"spiritual",txt:"🕉 Gurucharitra reading — Evening session (15 min)"},
+  {id:"e25",t:"7:20 PM",cat:"medicine",txt:"Evening medicines + Berberine · ALA · Magnesium · Chromium"},
+  {id:"e26",t:"7:35 PM",cat:"food",    txt:"Dinner — sabzi + dal · NO roti · NO rice"},
+  {id:"e27",t:"8:20 PM",cat:"walk",    txt:"Post-dinner walk 20 min"},
+  {id:"e28",t:"8:45 PM",cat:"media",   txt:"📺 Evening TV / movie / YouTube"},
+  {id:"e29",t:"9:30 PM",cat:"health",  txt:"Kefir + wind down"},
+  {id:"e30",t:"9:45 PM",cat:"exercise",txt:"🚴 Light cycling 20 min (optional — already rode morning)"},
+  {id:"e31",t:"10:15 PM",cat:"glucose",txt:"📊 Log PRE-SLEEP glucose in Glucose tab → Target: 90–110 mg/dL"},
+  {id:"e32",t:"10:20 PM",cat:"dental", txt:"🦷 Water flossing — 2–3 min · entire family"},
+  {id:"e33",t:"10:25 PM",cat:"rest",   txt:"Cool down · hygiene · dim lights"},
+  {id:"e34",t:"10:30 PM",cat:"sleep",  txt:"Sleep — 7–8 hrs"},
+];
+
+const HEALTH=[
+  {p:"Weight",        k:"weight", i:"⚖️",def:"105.2 kg",tgt:"88–90 kg",  sev:"red",  n:"15–17 kg loss over 8–9 months. Each kg lost = measurable glucose drop."},
+  {p:"BMI",           k:"bmi",    i:"📊",def:"40.7",    tgt:"32–34",     sev:"red",  n:"Class III Obesity. Every 5 kg lost reduces HbA1c by 0.5–1%."},
+  {p:"Biological Age",k:"bioage", i:"🧬",def:"78 yrs",  tgt:"68–70 yrs", sev:"crit", n:"18 years older than calendar age. Dr. Brewer reversed his arterial age 21 years in 1 year."},
+  {p:"Body Fat %",    k:"fatpct", i:"🔥",def:"36.6%",   tgt:"26–28%",    sev:"red",  n:"~38.5 kg total fat. Reducing visceral fat reverses insulin resistance."},
+  {p:"Visceral Fat",  k:"vfat",   i:"🚨",def:"30%",     tgt:"14–16%",    sev:"crit", n:"3x safe limit. Surrounds liver and pancreas. Primary driver of CRP=13."},
+  {p:"Muscle Mass",   k:"muscle", i:"💪",def:"25.1%",   tgt:"29–31%",    sev:"warn", n:"Each 1 kg muscle = 40–60 mg/dL improvement in post-meal glucose."},
+  {p:"RMR",           k:"rmr",    i:"⚡",def:"2054 kcal",tgt:"2200+ kcal",sev:"warn", n:"Low metabolism. Muscle gain raises this passively ~200 kcal/day."},
+  {p:"CRP",           k:"crp",    i:"🔴",def:"13 mg/L", tgt:"< 3 mg/L",  sev:"crit", n:"Severe vascular inflammation. Insulin-driven — fixing diet brings this down fast."},
+];
+const SEV={
+  crit:{bdr:"#ff4040",bg:"rgba(255,64,64,.08)",bdg:"#ff4040",lbl:"CRITICAL"},
+  red: {bdr:"#ff7040",bg:"rgba(255,112,64,.08)",bdg:"#ff7040",lbl:"HIGH RISK"},
+  warn:{bdr:"#ffaa00",bg:"rgba(255,170,0,.08)", bdg:"#ffaa00",lbl:"WARNING"},
+};
+
+const MEDS=[
+  {id:"m1",name:"Alcita 100 (Alogliptin)",dose:"100 mg",time:"At Breakfast",note:"DPP-4 inhibitor — controls post-meal glucose by slowing GLP-1 breakdown. Take with food."},
+  {id:"m2",name:"Glycomet Trio-2",dose:"1 tablet",time:"After Lunch",note:"Metformin 1g + Glimepiride 2mg + Pioglitazone 15mg combo. Do NOT skip if eating a meal."},
+  {id:"m3",name:"Ecosprin 75 mg (Aspirin)",dose:"75 mg",time:"After Lunch",note:"Antiplatelet for cardiac stent. NEVER skip — protects stented arteries from clot formation."},
+  {id:"m4",name:"Glycomet Trio-2",dose:"1 tablet",time:"After Dinner",note:"Second dose. ⚠ If skipping dinner, discuss with doctor — Glimepiride can cause hypoglycaemia."},
+  {id:"m5",name:"Atorva 20 mg (Atorvastatin)",dose:"20 mg",time:"After Dinner",note:"Statin — reduces LDL and arterial plaque. Take CoQ10 daily alongside to prevent depletion."},
+];
+const SUPPS=[
+  {id:"s1",n:"CoQ10",                   d:"100–200 mg",   t:"Morning",      p:"crit",  note:"Essential for stent + statins. Protects heart muscle."},
+  {id:"s2",n:"Omega-3 (EPA+DHA)",       d:"2000–4000 mg", t:"Morning",      p:"crit",  note:"Dr. Brewer's #1. CRP=13 makes this urgent. Reduces vascular inflammation."},
+  {id:"s3",n:"Vitamin D3 + K2 MK-7",   d:"4000 IU+200mcg",t:"Morning",     p:"crit",  note:"K2 removes calcium from arterial walls. D3 improves insulin sensitivity."},
+  {id:"s4",n:"Niacin (Enduricin — ER)",d:"500 mg start",  t:"Evening",      p:"high",  note:"Dr. Brewer's personal supplement. Raises HDL, reduces Lp(a) 12–20%. Discuss with cardiologist."},
+  {id:"s5",n:"Berberine",               d:"500 mg",        t:"Before meals", p:"high",  note:"Natural insulin sensitizer. Discuss with diabetologist — interacts with diabetes medicines."},
+  {id:"s6",n:"Magnesium Glycinate",     d:"300–400 mg",   t:"Evening",      p:"high",  note:"Reduces insulin resistance. Aids deep sleep. Reduces cycling cramps."},
+  {id:"s7",n:"Alpha Lipoic Acid",       d:"600 mg",        t:"Evening",      p:"high",  note:"Antioxidant. Reduces neuropathy risk. Lowers fasting glucose."},
+  {id:"s8",n:"Bergamot",                d:"500–1000 mg",  t:"Morning",      p:"high",  note:"Reduces LDL by 20–30%. CIMT improvement in clinical trials."},
+  {id:"s9",n:"Nattokinase",             d:"2000 FU",       t:"Empty stomach",p:"caut",  note:"Dr. Brewer uses this. STENT PATIENTS: discuss with cardiologist first."},
+  {id:"s10",n:"Chromium Picolinate",    d:"200–400 mcg",  t:"With dinner",  p:"mod",   note:"Enhances insulin receptor sensitivity. Reduces carb cravings."},
+];
+const PCOL={crit:"#ff4040",high:"#ffaa00",mod:"#00c9a7",caut:"#ff7040"};
+
+// ─── STATE ──────────────────────────────────────────────
+const TODAY = (function(){
+  const d=new Date(); 
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+})();
+let curDate = TODAY;
+let curTab  = "tracker";
+
+// ─── STORAGE ────────────────────────────────────────────
+const sg = k=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}};
+const ss = (k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const gT = d=>sg("nk-t-"+d)||{};
+const sT = (d,v)=>ss("nk-t-"+d,v);
+const gM = d=>sg("nk-m-"+d)||{};
+const sM = (d,v)=>ss("nk-m-"+d,v);
+const gG = d=>sg("nk-g-"+d)||{};
+const sG = (d,v)=>ss("nk-g-"+d,v);
+const gN = d=>sg("nk-n-"+d)||"";
+const sN = (d,v)=>{
+  ss("nk-n-"+d,v);
+  // Stamp revision time so learning box can show it
+  ss("nk-nts-"+d, new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"}));
+};
+const gNts = d=>sg("nk-nts-"+d)||null; // note last-saved timestamp
+const gDone  = d=>sg("nk-done-"+d)||false;
+const sDone  = (d,v)=>ss("nk-done-"+d,v);
+const gLearn  = d=>sg("nk-learn-"+d)||null;
+const sLearn  = (d,v)=>ss("nk-learn-"+d,v);
+const gAI     = d=>sg("nk-ai-"+d)||null;   // AI analysis for a given date (generated previous day)
+const sAI     = (d,v)=>ss("nk-ai-"+d,v);
+// Health parameters (persisted globally, updated when user edits)
+const DEFAULT_HEALTH = {weight:"105.2 kg",bmi:"40.7",bioage:"78 yrs",fatpct:"36.6%",vfat:"30%",muscle:"25.1%",rmr:"2054 kcal",crp:"13 mg/L"};
+const gHealth = ()=>sg("nk-health")||{...DEFAULT_HEALTH};
+const sHealth = v=>ss("nk-health",v);
+// Lab values: HbA1c, fasting insulin, fasting glucose (for HOMA)
+const gLabs = d=>sg("nk-labs-"+d)||{};
+const sLabs = (d,v)=>ss("nk-labs-"+d,v);
+
+function allDates(){
+  const out=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith("nk-t-"))out.push(k.slice(5));
+  }
+  return out.sort().reverse();
+}
+
+// ─── DATE HELPERS ────────────────────────────────────────
+function addDays(s,n){
+  const p=s.split("-").map(Number);
+  const d=new Date(p[0],p[1]-1,p[2]);
+  d.setDate(d.getDate()+n);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function isWE(s){const d=new Date(s+"T12:00:00").getDay();return d===0||d===6;}
+function fFull(s){return new Date(s+"T12:00:00").toLocaleDateString("en-IN",{weekday:"long",year:"numeric",month:"long",day:"numeric"});}
+function fShort(s){return new Date(s+"T12:00:00").toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short"});}
+function sched(d){return isWE(d)?WE:WD;}
+function pctFor(d){
+  const sc=sched(d),tk=gT(d),mds=gM(d);
+  const taskDone  = sc.filter(r=>tk[r.id]).length;
+  const prescDone = MEDS.filter(m=>mds[m.id]).length;
+  const suppsDone = SUPPS.filter(s=>mds[s.id]).length;
+  return Math.round((taskDone+prescDone+suppsDone)/(sc.length+MEDS.length+SUPPS.length)*100);
+}
+function pctCol(p){return p===100?"#00c9a7":p>=75?"#ffaa00":p>=40?"#fb923c":"#ff4040";}
+function e(tag,cls,style){
+  const el=document.createElement(tag);
+  if(cls)el.className=cls;
+  if(style)Object.assign(el.style,style);
+  return el;
+}
+function tx(text){return document.createTextNode(text);}
+
+// ─── HEADER UPDATE ───────────────────────────────────────
+function refreshHeader(){
+  const isToday=curDate===TODAY, isPast=curDate<TODAY;
+  const pct=pctFor(curDate);
+  const hp=document.getElementById("hpct");
+  hp.textContent=pct+"%";
+  hp.style.color=pctCol(pct);
+
+  const parts=fFull(curDate).split(",");
+  document.getElementById("dMain").textContent=(isToday?"Today — ":isPast?"Past — ":"")+parts[0];
+  document.getElementById("dSub").textContent=parts.slice(1).join(",").trim();
+
+  const note=document.getElementById("dNote");
+  note.innerHTML="";
+  if(!isToday){
+    const b=e("button","","");
+    Object.assign(b.style,{display:"block",margin:"8px auto 0",background:"var(--accent)",color:"#000",border:"none",borderRadius:"7px",padding:"5px 16px",fontSize:"11.5px",fontWeight:"700"});
+    b.textContent="Back to Today";
+    b.onclick=()=>navigate(TODAY);
+    note.appendChild(b);
+  }
+  if(isPast){
+    const n=e("div","",{textAlign:"center",marginTop:"6px",fontSize:"11px",color:"var(--muted)"});
+    n.textContent="📁 Viewing past record · "+pct+"% completed";
+    note.appendChild(n);
+  }
+  if(curDate>TODAY){
+    const n=e("div","",{textAlign:"center",marginTop:"6px",fontSize:"11px",color:"var(--warn)"});
+    n.textContent="Future date — view only";
+    note.appendChild(n);
+  }
+  document.getElementById("btnNext").disabled=(curDate>=TODAY);
+}
+
+// ─── RENDER TRACKER ──────────────────────────────────────
+function renderTracker(){
+  const panel=document.getElementById("p-tracker");
+  panel.innerHTML="";
+
+  // ── LEARNING FROM YESTERDAY ─────────────────────────────────────────────
+  // Show analysis of previous day's note + glucose + completion
+  const prevDate = addDays(curDate, -1);
+  const prevNote = gN(prevDate);
+  const prevTasks = gT(prevDate);
+  const prevTaskCount = sched(prevDate).filter(r=>prevTasks[r.id]).length;
+  // Show if prev day has any data at all
+  if (prevNote || prevTaskCount > 0 || Object.keys(gG(prevDate)).length > 0) {
+    const lbox = renderLearningBox(prevDate);
+    if (lbox) panel.appendChild(lbox);
+  }
+
+  const sc=sched(curDate), tk=gT(curDate), glc=gG(curDate);
+  const isFuture=curDate>TODAY, isToday=curDate===TODAY;
+  const isDone=gDone(curDate), noteVal=gN(curDate);
+  const done=sc.filter(r=>tk[r.id]).length;
+  const mds=gM(curDate);
+  const prescDone2 = MEDS.filter(m=>mds[m.id]).length;
+  const suppsDone2 = SUPPS.filter(s=>mds[s.id]).length;
+  const medsDone   = prescDone2+suppsDone2;
+  const allMeds    = [...MEDS,...SUPPS];
+  const totalItems = sc.length+allMeds.length;
+  const totalDone  = done+medsDone;
+  const pct        = Math.round(totalDone/totalItems*100);
+  const taskPct    = Math.round(done/sc.length*100);
+  const prescPct2  = Math.round(prescDone2/MEDS.length*100);
+  const suppsPct2  = Math.round(suppsDone2/SUPPS.length*100);
+  const col=pctCol(pct);
+  const wknd=isWE(curDate);
+
+  // Progress card
+  const card=e("div","card");
+  const ch=e("div","",{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"});
+  const cl=e("div");
+  const ct=e("div","fw",{fontSize:"13px",color:"var(--white)"});
+  ct.textContent=(wknd?"🏍 Weekend":"🗓 Weekday")+" · "+totalDone+"/"+totalItems+" done ("+pct+"%)";
+  cl.appendChild(ct);
+  if(!isToday){const cs=e("div","",{fontSize:"10.5px",color:"var(--muted)",marginTop:"2px"});cs.textContent="Archived — tap to review";cl.appendChild(cs);}
+  ch.appendChild(cl);
+  if(pct===100){const tr=e("div","",{fontSize:"18px"});tr.textContent="🏆";ch.appendChild(tr);}
+  card.appendChild(ch);
+  const pt=e("div","pbar");
+  const pf=e("div","pfill",{background:pct===100?"linear-gradient(90deg,#00c9a7,#34d399)":"linear-gradient(90deg,#00c9a7,#3d8fff)",width:pct+"%"});
+  pt.appendChild(pf); card.appendChild(pt);
+  const pft=e("div","",{marginTop:"5px",fontSize:"10px",color:"var(--muted)",textAlign:"right"});
+  pft.textContent=isToday?"Saves as you tap · Submit at end of day":"Saved record";
+  card.appendChild(pft);
+  const pd=e("div","prog-detail");
+  const colFn=p=>p===100?"#34d399":p>=80?"#ffaa00":"#ff7070";
+  const ps1=e("div","prog-seg"); ps1.innerHTML="🗓 Tasks: <strong style='color:"+colFn(taskPct)+"'>"+done+"/"+sc.length+" ("+taskPct+"%)</strong>";
+  const ps2=e("div","prog-seg"); ps2.innerHTML="💊 Prescribed: <strong style='color:"+colFn(prescPct2)+"'>"+prescDone2+"/"+MEDS.length+" ("+prescPct2+"%)</strong>";
+  const ps3=e("div","prog-seg"); ps3.innerHTML="🌿 Supplements: <strong style='color:"+colFn(suppsPct2)+"'>"+suppsDone2+"/"+SUPPS.length+" ("+suppsPct2+"%)</strong>";
+  pd.appendChild(ps1); pd.appendChild(ps2); pd.appendChild(ps3); card.appendChild(pd);
+  panel.appendChild(card);
+
+  // Info boxes
+  if(!wknd&&isToday){const ib=e("div","ibox",{background:"rgba(134,239,172,.07)",border:"1px solid rgba(134,239,172,.3)",color:"rgba(134,239,172,.9)"});ib.innerHTML="🌿 <strong>Domestic activity</strong> counts as morning movement. 📊 Glucose checks have inline logging.";panel.appendChild(ib);}
+  if(wknd&&isToday){const ib=e("div","ibox",{background:"rgba(167,139,250,.07)",border:"1px solid rgba(167,139,250,.3)",color:"rgba(167,139,250,.9)"});ib.innerHTML="🏍 <strong>Weekend mode.</strong> Bike riding replaces morning walk. Evening cycling optional.";panel.appendChild(ib);}
+
+  // Task rows
+  sc.forEach(item=>{
+    const cat=CAT[item.cat], ticked=!!tk[item.id], logV=glc[item.id];
+    const isGlc=item.cat==="glucose";
+    const row=e("div","trow"+(isFuture?" future":""),{
+      borderLeft:"3px solid "+(ticked?"var(--accent)":cat.c),
+      border:"1px solid "+(ticked?"rgba(0,201,167,.3)":cat.c+"28"),
+      background:ticked?"rgba(0,201,167,.04)":"rgba(9,26,48,.7)",
+      opacity:ticked?"0.62":"1",
+    });
+    const inner=e("div","trow-inner");
+    const tick=e("div","tick",{borderColor:ticked?"var(--accent)":cat.c,background:ticked?cat.c:"transparent"});
+    if(ticked)tick.textContent="✓";
+    if(!isFuture){
+      inner.onclick=ev=>{
+        if(ev.target.tagName==="INPUT"||ev.target.tagName==="BUTTON")return;
+        const t=gT(curDate); t[item.id]=!t[item.id]; sT(curDate,t);
+        renderTracker(); refreshHeader();
+      };
+    }
+    inner.appendChild(tick);
+    const cnt=e("div","",{flex:"1"});
+    const topR=e("div","",{display:"flex",alignItems:"center",flexWrap:"wrap",marginBottom:"3px"});
+    const tm=e("span","",{fontSize:"12px",fontWeight:"800",color:ticked?"var(--muted)":cat.c});
+    tm.textContent=item.t;
+    const cl2=e("span","",{fontSize:"8px",fontWeight:"700",letterSpacing:".7px",color:cat.c,opacity:".6",marginLeft:"7px"});
+    cl2.textContent=cat.l;
+    topR.appendChild(tm); topR.appendChild(cl2);
+    if(logV){const ch2=e("span","chip");ch2.textContent=logV+" mg/dL";topR.appendChild(ch2);}
+    cnt.appendChild(topR);
+    const txt=e("div","",{fontSize:"13px",lineHeight:"1.45",color:ticked?"var(--muted)":"var(--text)",textDecoration:ticked?"line-through":"none"});
+    txt.textContent=item.txt; cnt.appendChild(txt);
+    inner.appendChild(cnt); row.appendChild(inner);
+    // Glucose → Glucose tab
+    if(isGlc&&!ticked&&!isFuture){
+      const hint=e("div","",{fontSize:"11px",color:"#f472b6",marginTop:"6px",paddingLeft:"32px",cursor:"pointer"});
+      hint.innerHTML="Tap <strong>📊 Glucose tab</strong> above to enter your reading";
+      hint.onclick=()=>setTab("glucose");
+      row.appendChild(hint);
+    }
+    panel.appendChild(row);
+  });
+
+  // ── NOTES FIELD ─────────────────────────────────────────
+  const nbox=e("div","notes-box");
+  const nlbl=e("div","lbl",{marginBottom:"10px"});
+  nlbl.textContent="📝 DAILY NOTES & REMARKS";
+  nbox.appendChild(nlbl);
+  const ta=e("textarea","notes-ta");
+  ta.maxLength=1000; ta.rows=5;
+  ta.placeholder="How do you feel today? Energy levels, glucose readings, what worked well, any concerns, doctor observations...";
+  ta.value=noteVal;
+  if(isFuture||(isDone&&curDate<TODAY)) ta.readOnly=true;
+  const nfoot=e("div","notes-foot");
+  const cc=e("div","cc"); cc.textContent=noteVal.length+" / 1000"; nfoot.appendChild(cc);
+  if(!isFuture&&!(isDone&&curDate<TODAY)){
+    ta.addEventListener("input",()=>{
+      const len=ta.value.length;
+      cc.textContent=len+" / 1000";
+      cc.className="cc"+(len>900?" full":len>750?" near":"");
+      sN(curDate,ta.value);
+    });
+    const ah=e("div","",{fontSize:"11px",color:"var(--accent)"});
+    ah.textContent="Auto-saved as you type"; nfoot.appendChild(ah);
+  }
+  nbox.appendChild(ta); nbox.appendChild(nfoot); panel.appendChild(nbox);
+
+  // ── SUBMIT / COMPLETED SECTION ───────────────────────────
+  if(!isFuture){
+    const sw=e("div","sub-wrap");
+    if(isDone && curDate < TODAY){
+      // Past day — locked
+      const banner=e("div","submitted-banner");
+      const bi=e("div","",{fontSize:"32px",marginBottom:"8px"}); bi.textContent="✅";
+      const bt=e("div","fw",{fontSize:"16px",color:"var(--accent)",marginBottom:"4px"});
+      bt.textContent="Day Submitted — "+fShort(curDate);
+      const bs=e("div","",{fontSize:"12px",color:"var(--muted)",lineHeight:"1.6"});
+      bs.textContent=pct+"% tasks completed · "+Object.values(gG(curDate)).filter(v=>v).length+" glucose readings logged";
+      banner.appendChild(bi); banner.appendChild(bt); banner.appendChild(bs); sw.appendChild(banner);
+      const freshNoteForBanner=gN(curDate)||"";
+      if(freshNoteForBanner){
+        const np=e("div","note-preview"); np.textContent='"'+freshNoteForBanner+'"'; sw.appendChild(np);
+      }
+      const nb=e("button","next-day-btn"); nb.textContent="Open "+fShort(addDays(curDate,1))+" \u2192";
+      nb.onclick=()=>navigate(addDays(curDate,1)); sw.appendChild(nb);
+    } else {
+      // Pre-submit summary + button
+      const glcVals=Object.values(gG(curDate)).filter(v=>v);
+      const sb=e("div","summary-box");
+      const st=e("div","fw",{fontSize:"13px",color:"var(--accent)",marginBottom:"8px"});
+      st.textContent="📋 Today's Summary";
+      const sbody=e("div","",{fontSize:"12.5px",color:"#7a9ab8",lineHeight:"1.9"});
+      const prescDone  = MEDS.filter(m=>mds[m.id]).length;
+      const prescTotal = MEDS.length;
+      const prescPct   = Math.round(prescDone/prescTotal*100);
+      const suppsDone  = SUPPS.filter(s=>mds[s.id]).length;
+      const suppsTotal = SUPPS.length;
+      const suppsPct   = Math.round(suppsDone/suppsTotal*100);
+      const medCol  = c=>c===100?"#34d399":c>=80?"#ffaa00":"#ff7070";
+      sbody.innerHTML="✅ Tasks: <strong style='color:var(--white)'>"+done+" of "+sc.length+"</strong>"
+        +" <strong style='color:"+medCol(taskPct)+"'>("+taskPct+"%)</strong><br>"
+        +"💊 Prescribed Medicines: <strong style='color:var(--white)'>"+prescDone+" of "+prescTotal+"</strong>"
+        +" <strong style='color:"+medCol(prescPct)+"'>("+prescPct+"%)</strong><br>"
+        +"🌿 Supplements: <strong style='color:var(--white)'>"+suppsDone+" of "+suppsTotal+"</strong>"
+        +" <strong style='color:"+medCol(suppsPct)+"'>("+suppsPct+"%)</strong><br>"
+        +"📊 Glucose: <strong style='color:var(--white)'>"+(glcVals.length>0?glcVals.join(", ")+" mg/dL":"None logged yet")+"</strong><br>"
+        +"📝 Notes: <strong style='color:var(--white)'>"+(gN(curDate)?(gN(curDate).length)+" characters written":"Not yet written")+"</strong>";
+      sb.appendChild(st); sb.appendChild(sbody); sw.appendChild(sb);
+      const submitBtn=e("button","sub-btn");
+      submitBtn.textContent=isDone?(pct===100?"🏆 Re-submit Perfect Day!":"Re-submit Day \u2192"):(pct===100?"🏆 Submit Perfect Day!":"Submit Day & Continue \u2192");
+      submitBtn.onclick=()=>{
+        // Always read fresh from textarea and save before submitting
+        const ta2=document.querySelector(".notes-ta");
+        const freshNote=ta2?ta2.value:gN(curDate);
+        sN(curDate,freshNote);
+        const freshGlcVals=Object.values(gG(curDate)).filter(v=>v);
+        openModal(curDate,pct,done,sc.length,freshGlcVals,freshNote);
+      };
+      sw.appendChild(submitBtn);
+      const hint=e("div","",{fontSize:"11px",color:"var(--muted)",textAlign:"center",marginTop:"8px"});
+      hint.textContent=isDone?"Already submitted — edit freely and re-submit until midnight":"Saves this day to history and opens tomorrow fresh";
+      sw.appendChild(hint);
+    }
+    panel.appendChild(sw);
+  }
+}
+
+// ─── SUBMIT MODAL ────────────────────────────────────────
+function openModal(dateStr,pct,done,total,glcVals,noteValStale){
+  sDone(dateStr,true);
+  // ALWAYS read the latest note from storage — never use the closure/passed value
+  const noteVal=gN(dateStr)||noteValStale||"";
+  const nextDate=addDays(dateStr,1);
+  // Trigger AI analysis for tomorrow (async, runs in background when online)
+  generateAIAnalysis(dateStr);
+  const perfect=pct===100;
+  document.getElementById("mIcon").textContent=perfect?"🏆":"✅";
+  document.getElementById("mTitle").textContent=perfect?"Perfect Day!":"Day Submitted";
+  const body=document.getElementById("mBody");
+  body.innerHTML="<strong style='color:var(--white)'>"+fShort(dateStr)+"</strong> saved to your health journal.<br><br>"
+    +(perfect?"Every single task completed. Outstanding!":"Good work — every consistent day counts.")
+    +(noteVal?"<br><br><em style='color:var(--muted)'>\u201c"+(noteVal.length>90?noteVal.slice(0,90)+"\u2026":noteVal)+"\u201d</em>":"");
+  const stats=document.getElementById("mStats");
+  stats.innerHTML="";
+  [{v:pct+"%",l:"Tasks"},{v:done+"/"+total,l:"Checklist"},{v:glcVals.length>0?glcVals[0]+" mg/dL":"--",l:"Fasting"}]
+    .forEach(s=>{
+      const st=e("div","mstat");
+      const sv=e("div","fw",{fontSize:"18px",color:"var(--accent)"}); sv.textContent=s.v;
+      const sl=e("div","",{fontSize:"10px",color:"var(--muted)",marginTop:"2px"}); sl.textContent=s.l;
+      st.appendChild(sv); st.appendChild(sl); stats.appendChild(st);
+    });
+  const mnb=document.getElementById("mNext");
+  mnb.textContent="Open "+fShort(nextDate)+" \u2192";
+  mnb.onclick=()=>{
+    document.getElementById("modal").style.display="none";
+    if(!sg("nk-t-"+nextDate))ss("nk-t-"+nextDate,{});
+    navigate(nextDate);
+  };
+  document.getElementById("mStay").onclick=()=>{
+    document.getElementById("modal").style.display="none";
+    renderTracker();
+  };
+  document.getElementById("modal").style.display="flex";
+}
+
+// ─── RENDER GLUCOSE ──────────────────────────────────────
+function renderGlucose(){
+  const panel=document.getElementById("p-glucose");
+  panel.innerHTML="";
+  const isFuture=curDate>TODAY, wknd=isWE(curDate);
+  const glc=gG(curDate), labs=gLabs(curDate);
+
+  // ── Header ────────────────────────────────────────────────────────────
+  const b=e("div","ibox",{background:"rgba(244,114,182,.08)",border:"1px solid rgba(244,114,182,.35)",color:"rgba(249,168,212,.9)",marginBottom:"14px"});
+  b.innerHTML="<strong style='font-size:12.5px'>🎯 Dr. Ford Brewer (PrevMed) — Plaque Reversal via Insulin Fix</strong><br><br>"
+    +"Insulin resistance is your root cause. Every reading you log here becomes the evidence your doctor needs to taper medicines. "
+    +"<strong style='color:#ffbbbb'>Log all readings here — entries save instantly.</strong>";
+  panel.appendChild(b);
+
+  // ── Helper: unified input card (always editable) ──────────────────────
+  function glcInputCard(title, subtitle, storeName, storeKey, tgtText, okFn, note){
+    const isLab = (storeName === "labs");
+    const curVal = isLab ? labs[storeKey] : glc[storeKey];
+    const good   = curVal && okFn ? okFn(curVal) : null;
+    const borderCol = curVal ? (good===null?"var(--bdr)":good?"rgba(0,201,167,.45)":"rgba(255,112,64,.45)") : "var(--bdr)";
+
+    const card=e("div","gcrd",{border:"1px solid "+borderCol});
+
+    // Top row: title + current value
+    const top=e("div","",{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"8px"});
+    const lft=e("div","",{flex:"1"});
+    const lh=e("div","fw",{fontSize:"14px",color:"var(--white)"}); lh.textContent=title; lft.appendChild(lh);
+    const ls=e("div","",{fontSize:"11px",color:"var(--muted)",marginTop:"2px"}); ls.textContent=subtitle; lft.appendChild(ls);
+    if(note){const ln=e("div","",{fontSize:"11px",color:"#7a9ab8",marginTop:"3px",lineHeight:"1.45"});ln.textContent=note;lft.appendChild(ln);}
+    top.appendChild(lft);
+
+    const rgt=e("div","",{textAlign:"right",flexShrink:"0",marginLeft:"10px"});
+    if(curVal){
+      const vv=e("div","fw",{fontSize:"22px",color:good===null?"var(--white)":good?"#34d399":"#ff7070"});
+      vv.textContent=curVal;
+      const vs=e("div","",{fontSize:"10px",marginTop:"1px",color:good===null?"var(--muted)":good?"#34d399":"#ff7070"});
+      vs.textContent=good===null?"Logged":good?"✓ Good":"↑ High";
+      rgt.appendChild(vv); rgt.appendChild(vs);
+    } else {
+      const dash=e("div","fw",{fontSize:"20px",color:"var(--muted)"}); dash.textContent="—"; rgt.appendChild(dash);
+    }
+    const tg=e("div","",{fontSize:"9.5px",color:"var(--accent)",marginTop:"3px"}); tg.textContent="Target: "+tgtText; rgt.appendChild(tg);
+    top.appendChild(rgt);
+    card.appendChild(top);
+
+    // Input row — always visible unless future date
+    if(!isFuture){
+      const ir=e("div","",{display:"flex",gap:"8px",alignItems:"center"});
+      const inp=e("input","glc-in",{flex:"1",width:"auto"});
+      inp.type="number"; inp.step="0.1";
+      inp.placeholder=curVal?"Update value":"Enter value";
+      if(curVal) inp.value=curVal;
+      const unit=e("div","",{fontSize:"12px",color:"var(--muted)",flexShrink:"0"});
+      unit.textContent=isLab&&storeKey==="hba1c"?"%":isLab&&storeKey==="fasting_i"?"µIU/mL":"mg/dL";
+      const btn=e("button","glc-btn",{flexShrink:"0"});
+      btn.textContent=curVal?"Update":"Save";
+      btn.onclick=()=>{
+        const v=parseFloat(inp.value); if(!v||isNaN(v))return;
+        if(isLab){
+          const l=gLabs(curDate); l[storeKey]=v;
+          // Auto-calc HOMA when either fasting_g or fasting_i changes
+          const fg2=storeKey==="fasting_g"?v:(l["fasting_g"]||glc["w05"]||glc["e05"]);
+          const fi2=storeKey==="fasting_i"?v:l["fasting_i"];
+          if(fg2&&fi2) l["homa"]=parseFloat(((fg2*fi2)/405).toFixed(2));
+          sLabs(curDate,l);
+        } else {
+          const g=gG(curDate); g[storeKey]=v; sG(curDate,g);
+          // Auto-tick the tracker task
+          const t=gT(curDate); t[storeKey]=true; sT(curDate,t);
+          // If fasting glucose, also update labs fasting_g for HOMA
+          if(storeKey==="w05"||storeKey==="e05"){
+            const l=gLabs(curDate); l["fasting_g"]=v;
+            const fi2=l["fasting_i"];
+            if(fi2) l["homa"]=parseFloat(((v*fi2)/405).toFixed(2));
+            sLabs(curDate,l);
+          }
+        }
+        btn.textContent="✓ Saved!"; btn.style.background="#34d399";
+        setTimeout(()=>{ btn.textContent="Update"; btn.style.background="#f472b6"; renderGlucose(); refreshHeader(); },800);
+      };
+      ir.appendChild(inp); ir.appendChild(unit); ir.appendChild(btn);
+      card.appendChild(ir);
+    }
+    return card;
+  }
+
+  // ── Section 1: Daily Glucose Readings ────────────────────────────────
+  const lb1=e("div","lbl"); lb1.textContent="DAILY GLUCOSE READINGS — "+fShort(curDate); panel.appendChild(lb1);
+
+  const dailyReadings=[
+    {title:"Fasting Glucose",       sub:"Before any food · Morning",              sk:"w05",sk_we:"e05", tgt:"< 110 mg/dL",ok:v=>v<110,
+     note:"Most important reading. Directly reflects overnight insulin output and liver glucose. Take before kefir, medicines, or breakfast."},
+    {title:"Post-Breakfast",        sub:"2 hrs after breakfast",                   sk:"w12",sk_we:"e12", tgt:"< 140 mg/dL",ok:v=>v<140,
+     note:"Shows how your breakfast food choices affect glucose. Protein-first eating should keep this under 140."},
+    {title:"Post-Lunch",            sub:"2 hrs after lunch · ~3:00 PM",           sk:"w19",sk_we:"e19", tgt:"< 140 mg/dL",ok:v=>v<140,
+     note:"The 15-min post-lunch walk should reduce this by 20–40 mg/dL. Compare walk vs no-walk days."},
+    {title:"Pre-Sleep",             sub:"Before bed · ~10:15 PM",                 sk:"w32",sk_we:"e31", tgt:"90–110 mg/dL",ok:v=>v>=90&&v<=110,
+     note:"If below 90 mg/dL, eat 2 walnuts before sleeping. If consistently above 130, discuss with doctor."},
+  ];
+  if(wknd){
+    // For weekend, swap to weekend IDs but keep post-breakfast as exercise
+    dailyReadings[1].title = "Post-Exercise (Bike ride)";
+    dailyReadings[1].sub   = "After morning bike ride";
+  }
+  dailyReadings.forEach(r=>{
+    const key = wknd ? r.sk_we : r.sk;
+    panel.appendChild(glcInputCard(r.title, r.sub, "glc", key, r.tgt, r.ok, r.note));
+  });
+
+  // ── Section 2: Lab Values ─────────────────────────────────────────────
+  const lb2=e("div","lbl mt"); lb2.textContent="LAB VALUES — ENTER WHEN AVAILABLE"; panel.appendChild(lb2);
+  const labHint=e("div","",{fontSize:"11.5px",color:"var(--muted)",marginBottom:"12px",lineHeight:"1.65"});
+  labHint.innerHTML="These come from blood tests — enter whenever you get new results. "
+    +"<strong style='color:var(--white)'>Fasting Serum Insulin</strong> must be specifically requested from your doctor — it is rarely ordered by default but is essential for HOMA-IR. "
+    +"<strong style='color:var(--white)'>HOMA-IR is auto-calculated</strong> when you enter both fasting glucose and fasting insulin.";
+  panel.appendChild(labHint);
+
+  panel.appendChild(glcInputCard(
+    "HbA1c",
+    "Glycated haemoglobin · % · Get every 3 months",
+    "labs","hba1c","< 5.7% for reversal",v=>v<5.7,
+    "Reflects your average glucose over the past 90 days. One of the two key metrics your doctor uses to consider medicine tapering."
+  ));
+  panel.appendChild(glcInputCard(
+    "Fasting Insulin",
+    "Fasting Serum Insulin · µIU/mL",
+    "labs","fasting_i","< 10 µIU/mL",v=>v<10,
+    "Most doctors do not order this — ask specifically. Together with fasting glucose it calculates your HOMA-IR insulin resistance score."
+  ));
+  panel.appendChild(glcInputCard(
+    "Fasting Glucose (for HOMA-IR)",
+    "Enter same-day fasting glucose for HOMA calculation",
+    "labs","fasting_g","< 100 mg/dL",v=>v<100,
+    "If you already logged fasting glucose above, it is automatically used for HOMA. Re-enter here only if from a lab test on a different day."
+  ));
+
+  // ── HOMA-IR auto-calculated display ──────────────────────────────────
+  const fg2 = labs["fasting_g"] || glc["w05"] || glc["e05"];
+  const fi2 = labs["fasting_i"];
+  if(fg2&&fi2){
+    const l=gLabs(curDate); l["homa"]=parseFloat(((fg2*fi2)/405).toFixed(2)); sLabs(curDate,l);
+  }
+  const homaVal = (fg2&&fi2)?((fg2*fi2)/405).toFixed(2):(labs["homa"]||null);
+  const homaCol = homaVal ? (homaVal<2?"#34d399":homaVal<3.5?"#ffaa00":"#ff4040") : "var(--muted)";
+
+  const homaCard=e("div","gcrd",{border:"1px solid "+(homaVal?homaCol+"66":"var(--bdr)")});
+  const homaTop=e("div","",{display:"flex",justifyContent:"space-between",alignItems:"center"});
+  const homaL=e("div","",{flex:"1"});
+  const homaTitle=e("div","fw",{fontSize:"14px",color:"var(--white)"}); homaTitle.textContent="🎯 HOMA-IR Score"; homaL.appendChild(homaTitle);
+  const homaSub=e("div","",{fontSize:"11px",color:"var(--muted)",marginTop:"2px"}); homaSub.textContent="Auto-calculated · (Fasting Glucose × Fasting Insulin) ÷ 405"; homaL.appendChild(homaSub);
+  homaTop.appendChild(homaL);
+  const homaR=e("div","",{textAlign:"right"});
+  const homaV=e("div","fw",{fontSize:"26px",color:homaCol}); homaV.textContent=homaVal||"—"; homaR.appendChild(homaV);
+  const homaTg=e("div","",{fontSize:"9.5px",color:"var(--accent)",marginTop:"2px"}); homaTg.textContent="Target: < 1.9 (reversal)"; homaR.appendChild(homaTg);
+  homaTop.appendChild(homaR);
+  homaCard.appendChild(homaTop);
+  if(homaVal){
+    const hv=parseFloat(homaVal);
+    let msg="";
+    if(hv<1.9) msg="Excellent insulin sensitivity — pre-reversal territory. The low-carb protocol is working at the hormonal level.";
+    else if(hv<2.9) msg="Mild insulin resistance. Responding to protocol. Continue low-carb and post-meal walks.";
+    else if(hv<5) msg="Moderate insulin resistance — this is driving your CRP=13 and arterial inflammation. Stricter carb reduction + resistance training is the lever.";
+    else msg="Significant insulin resistance. Every point above 3 is actively inflaming your arterial walls and building plaque. Diet is your primary medicine right now.";
+    const interp=e("div","",{marginTop:"10px",background:"rgba(0,0,0,.2)",borderRadius:"8px",padding:"9px 12px",fontSize:"12px",color:"#7a9ab8",lineHeight:"1.6"});
+    interp.textContent=msg; homaCard.appendChild(interp);
+  } else {
+    const need=e("div","",{fontSize:"12px",color:"var(--muted)",marginTop:"8px",fontStyle:"italic"});
+    need.textContent="Enter Fasting Insulin and Fasting Glucose above to auto-calculate."; homaCard.appendChild(need);
+  }
+  panel.appendChild(homaCard);
+
+  // ── Reversal Stages ───────────────────────────────────────────────────
+  const lb3=e("div","lbl mt"); lb3.textContent="REVERSAL STAGES — WHERE ARE YOU NOW?"; panel.appendChild(lb3);
+  [
+    {s:"Stage 1 — T2D Active",  c:"#ff4040",
+     vals:[{v:"130–180+",l:"Fasting mg/dL"},{v:"180–250+",l:"Post-meal mg/dL"},{v:">7.5%",l:"HbA1c"},{v:">5",l:"HOMA-IR"}],
+     note:"High insulin + high glucose = active arterial inflammation. Both are directly irritating your arterial walls and driving CRP=13. The Insulin Spiral of Death is fully active."},
+    {s:"Stage 2 — Controlled",  c:"#ff7040",
+     vals:[{v:"110–130",l:"Fasting mg/dL"},{v:"140–180",l:"Post-meal mg/dL"},{v:"6.5–7.5%",l:"HbA1c"},{v:"3–5",l:"HOMA-IR"}],
+     note:"Medicines controlling glucose but insulin resistance is still high. Plaque still progressing slowly. Lifestyle changes needed to move to Stage 3."},
+    {s:"Stage 3 — Pre-reversal",c:"#ffaa00",
+     vals:[{v:"100–110",l:"Fasting mg/dL"},{v:"120–140",l:"Post-meal mg/dL"},{v:"5.7–6.5%",l:"HbA1c"},{v:"2–3",l:"HOMA-IR"}],
+     note:"Insulin resistance reducing. Soft plaque stabilising. CIMT begins to show slowing. Medicine tapering conversation can begin with doctor."},
+    {s:"Stage 4 — Remission",   c:"#00c9a7",
+     vals:[{v:"< 100",l:"Fasting mg/dL"},{v:"< 120",l:"Post-meal mg/dL"},{v:"< 5.7%",l:"HbA1c"},{v:"< 1.9",l:"HOMA-IR"}],
+     note:"Full reversal. Pancreas recovered. No medicines needed. CIMT shows regression. Dr. Brewer went from arterial age 73 to 52 in 12 months. This is your target."},
+  ].forEach(st=>{
+    const row=e("div","stage-row",{background:st.c+"0d",border:"1px solid "+st.c+"44",borderLeft:"4px solid "+st.c});
+    const tt=e("div","stage-title",{color:st.c}); tt.textContent=st.s; row.appendChild(tt);
+    const vals=e("div","stage-vals");
+    st.vals.forEach(v=>{
+      const vb=e("div","stage-val",{border:"1px solid "+st.c+"33"});
+      const vn=e("div","stage-val-num",{color:st.c}); vn.textContent=v.v; vb.appendChild(vn);
+      const vl=e("div","stage-val-lbl"); vl.textContent=v.l; vb.appendChild(vl);
+      vals.appendChild(vb);
+    });
+    row.appendChild(vals);
+    const nt=e("div","stage-note",{color:"#8aaccf"}); nt.textContent=st.note; row.appendChild(nt);
+    panel.appendChild(row);
+  });
+}
+
+// ─── RENDER HEALTH ───────────────────────────────────────
+function renderHealth(){
+  const panel=document.getElementById("p-health"); panel.innerHTML="";
+  const hp=gHealth();
+  const hint=e("div","ibox",{background:"rgba(0,201,167,.06)",border:"1px solid rgba(0,201,167,.2)",color:"rgba(0,201,167,.8)",marginBottom:"11px"});
+  hint.textContent="✏️ Tap any current value to update it — enter your latest measurement and tap Save. Progress tab will update automatically.";
+  panel.appendChild(hint);
+  const lb=e("div","lbl"); lb.textContent="CURRENT STATUS vs TARGET · DEC 2026"; panel.appendChild(lb);
+  HEALTH.forEach(row=>{
+    const s=SEV[row.sev];
+    const curVal=hp[row.k]||row.def;
+    const card=e("div","hrow",{background:s.bg,borderLeft:"3px solid "+s.bdr,border:"1px solid "+s.bdr+"44"});
+    const top=e("div","",{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"6px"});
+    const lft=e("div","",{display:"flex",alignItems:"center",gap:"7px"});
+    const ic=e("span","",{fontSize:"15px"}); ic.textContent=row.i; lft.appendChild(ic);
+    const inf=e("div");
+    const bdg=e("span","",{background:s.bdg,color:"#000",fontSize:"7px",fontWeight:"800",padding:"2px 5px",borderRadius:"3px",letterSpacing:"1.2px",marginRight:"5px"});
+    bdg.textContent=s.lbl;
+    const pm=e("span","fw",{fontSize:"13.5px",color:"var(--white)"}); pm.textContent=row.p;
+    inf.appendChild(bdg); inf.appendChild(pm); lft.appendChild(inf); top.appendChild(lft);
+    // Editable right side
+    const rgt=e("div","hval-wrap",{});
+    const inp=e("input","hval-input"); inp.value=curVal; inp.title="Tap to edit";
+    const tg=e("div","",{fontSize:"10px",color:"var(--accent)"}); tg.textContent="→ "+row.tgt;
+    const saveBtn=e("button","hval-save"); saveBtn.textContent="Save";
+    saveBtn.onclick=()=>{
+      const h=gHealth(); h[row.k]=inp.value.trim(); sHealth(h);
+      saveBtn.textContent="✓ Saved!"; saveBtn.style.background="#34d399";
+      setTimeout(()=>{saveBtn.textContent="Save";saveBtn.style.background="var(--accent)";},1500);
+      // Update header pill if weight
+      if(row.k==="weight") refreshHealthPills();
+    };
+    rgt.appendChild(inp); rgt.appendChild(tg); rgt.appendChild(saveBtn);
+    top.appendChild(rgt); card.appendChild(top);
+    const nt=e("div","",{fontSize:"12px",color:"#7a9ab8",lineHeight:"1.5"}); nt.textContent=row.n; card.appendChild(nt);
+    panel.appendChild(card);
+  });
+  const tipH=e("div","ibox",{background:"rgba(0,201,167,.07)",border:"1px solid rgba(0,201,167,.25)",color:"#00c9a7",marginTop:"6px"});
+  tipH.innerHTML="📺 <strong>YouTube: PrevMed Health</strong> (Dr. Ford Brewer) — insulin resistance, T2D reversal, CIMT and plaque.";
+  panel.appendChild(tipH);
+}
+
+function refreshHealthPills(){
+  const hp=gHealth();
+  const pills=document.querySelectorAll(".pill");
+  if(pills[0]) pills[0].innerHTML=hp.weight+"<em>Wt</em>";
+}
+
+// ─── RENDER MEDS ────────────────────────────────────────
+function renderMeds(){
+  const panel=document.getElementById("p-meds"); panel.innerHTML="";
+  const mds=gM(curDate), isFuture=curDate>TODAY;
+
+  // ── Mini stats header ────────────────────────────────────────────────
+  const pDone=MEDS.filter(m=>mds[m.id]).length,  pTot=MEDS.length,  pPct=Math.round(pDone/pTot*100);
+  const sDone=SUPPS.filter(s=>mds[s.id]).length,  sTot=SUPPS.length, sPct=Math.round(sDone/sTot*100);
+  const colFn=p=>p===100?"#34d399":p>=80?"#ffaa00":"#ff7070";
+  const statsBar=e("div","",{display:"flex",gap:"8px",marginBottom:"12px",flexWrap:"wrap"});
+  [{lbl:"💊 Prescribed",done:pDone,tot:pTot,pct:pPct},{lbl:"🌿 Supplements",done:sDone,tot:sTot,pct:sPct}]
+    .forEach(seg=>{
+      const seg_el=e("div","",{flex:"1",minWidth:"140px",background:"var(--surf)",border:"1px solid var(--bdr)",borderRadius:"10px",padding:"10px 13px"});
+      const sv=e("div","fw",{fontSize:"20px",color:colFn(seg.pct),marginBottom:"3px"}); sv.textContent=seg.pct+"%";
+      const sl=e("div","",{fontSize:"11.5px",color:"var(--muted)"}); sl.textContent=seg.lbl+" · "+seg.done+"/"+seg.tot+" taken";
+      const ptrack=e("div","",{background:"#040e1c",borderRadius:"999px",height:"5px",marginTop:"7px",overflow:"hidden"});
+      const pfill=e("div","",{height:"100%",borderRadius:"999px",background:colFn(seg.pct),width:seg.pct+"%"});
+      ptrack.appendChild(pfill); seg_el.appendChild(sv); seg_el.appendChild(sl); seg_el.appendChild(ptrack);
+      statsBar.appendChild(seg_el);
+    });
+  panel.appendChild(statsBar);
+
+  const wb=e("div","warnbox");
+  wb.innerHTML="⚠️ Your actual prescriptions are pre-filled below. <strong style='color:#ffbbbb'>Never skip Ecosprin</strong> (stent protection). Discuss adding <strong style='color:#ffbbbb'>Berberine or Niacin</strong> with your diabetologist before starting them.";
+  panel.appendChild(wb);
+  const lb=e("div","lbl"); lb.textContent="PRESCRIBED MEDICINES"; panel.appendChild(lb);
+  MEDS.forEach(m=>{
+    const ticked=!!mds[m.id];
+    const row=e("div","mrow",{border:"1px solid "+(ticked?"var(--accent)":"var(--bdr)"),background:ticked?"rgba(0,201,167,.05)":"var(--surf)",opacity:ticked?"0.65":"1"});
+    if(!isFuture)row.onclick=()=>{const d=gM(curDate);d[m.id]=!d[m.id];sM(curDate,d);renderMeds();};
+    const tk=e("div","tick",{borderColor:ticked?"var(--accent)":"#1a3050",background:ticked?"var(--accent)":"transparent"});
+    if(ticked)tk.textContent="✓"; row.appendChild(tk);
+    const inf=e("div","",{flex:"1"});
+    const nm=e("div","fw",{fontSize:"13.5px",color:"var(--white)"}); nm.textContent=m.name; inf.appendChild(nm);
+    const dt=e("div","",{fontSize:"11.5px",color:"var(--blue)",marginTop:"2px"}); dt.textContent=m.dose+" · "+m.time; inf.appendChild(dt);
+    const nt=e("div","",{fontSize:"11px",color:"var(--muted)",marginTop:"2px"}); nt.textContent=m.note; inf.appendChild(nt);
+    row.appendChild(inf);
+    const pi=e("span","",{fontSize:"17px",opacity:".5"}); pi.textContent="💊"; row.appendChild(pi);
+    panel.appendChild(row);
+  });
+  const lb2=e("div","lbl mt"); lb2.textContent="SUPPLEMENTS (Dr. Brewer + Dr. Ham Protocol)"; panel.appendChild(lb2);
+  SUPPS.forEach(s=>{
+    const ticked=!!mds[s.id], pc=PCOL[s.p]||"var(--accent)";
+    const row=e("div","srow",{borderLeft:"3px solid "+(ticked?"var(--accent)":pc),border:"1px solid "+(ticked?"rgba(0,201,167,.3)":pc+"30"),background:ticked?"rgba(0,201,167,.04)":"var(--surf)",opacity:ticked?"0.65":"1"});
+    if(!isFuture)row.onclick=()=>{const d=gM(curDate);d[s.id]=!d[s.id];sM(curDate,d);renderMeds();};
+    const tk=e("div","tick",{marginTop:"2px",borderColor:ticked?"var(--accent)":pc,background:ticked?pc:"transparent"});
+    if(ticked)tk.textContent="✓"; row.appendChild(tk);
+    const inf=e("div","",{flex:"1"});
+    const tr=e("div","",{display:"flex",alignItems:"center",gap:"7px",flexWrap:"wrap",marginBottom:"3px"});
+    const nm=e("span","fw",{fontSize:"13.5px",color:"var(--white)"}); nm.textContent=s.n; tr.appendChild(nm);
+    const pb=e("span","pbadge",{background:pc}); pb.textContent=s.p.toUpperCase(); tr.appendChild(pb);
+    inf.appendChild(tr);
+    const dt=e("div","",{fontSize:"11.5px",color:pc,marginBottom:"3px"}); dt.textContent=s.d+" · "+s.t; inf.appendChild(dt);
+    const nt=e("div","",{fontSize:"11.5px",color:"var(--muted)",lineHeight:"1.5"}); nt.textContent=s.note; inf.appendChild(nt);
+    row.appendChild(inf); panel.appendChild(row);
+  });
+}
+
+// ─── RENDER HISTORY ──────────────────────────────────────
+function renderHistory(){
+  const panel=document.getElementById("p-history"); panel.innerHTML="";
+  const intro=e("div","card",{marginBottom:"14px"});
+  const ih=e("div","fw",{fontSize:"14px",color:"var(--white)",marginBottom:"4px"}); ih.textContent="📅 Your Health Journal";
+  const is=e("div","",{fontSize:"12px",color:"var(--muted)",lineHeight:"1.6"}); is.textContent="Every day you use the dashboard is saved here. Tap any date to review that day's full record.";
+  intro.appendChild(ih); intro.appendChild(is); panel.appendChild(intro);
+
+  const dates=allDates();
+  if(dates.length===0){
+    const emp=e("div","",{textAlign:"center",padding:"40px 20px",color:"var(--muted)",fontSize:"13px"});
+    emp.textContent="No history yet — start checking off tasks today.";
+    panel.appendChild(emp); return;
+  }
+
+  dates.forEach(ds=>{
+    const pct=pctFor(ds), col=pctCol(pct);
+    const sc=sched(ds), tk=gT(ds), glc=gG(ds);
+    const done=sc.filter(r=>tk[r.id]).length;
+    const glcVals=Object.values(glc).filter(v=>v);
+    const note=gN(ds), submitted=gDone(ds);
+    const isThisToday=ds===TODAY, wknd=isWE(ds), isSel=ds===curDate;
+
+    const row=e("div","hstrow"+(isSel?" sel":""));
+    row.onclick=()=>{navigate(ds);setTab("tracker");};
+
+    const top=e("div","",{display:"flex",justifyContent:"space-between",alignItems:"flex-start"});
+    const lft=e("div","",{flex:"1"});
+
+    const dr=e("div","",{display:"flex",alignItems:"center",flexWrap:"wrap",gap:"4px"});
+    const dn=e("span","fw",{fontSize:"14px",color:isThisToday?"var(--accent)":"var(--white)"}); dn.textContent=fShort(ds); dr.appendChild(dn);
+    if(isThisToday){const b=e("span","badge badg-today"); b.textContent="TODAY"; dr.appendChild(b);}
+    if(wknd){const b=e("span","badge badg-wknd"); b.textContent="WEEKEND"; dr.appendChild(b);}
+    if(submitted){const b=e("span","badge badg-done"); b.textContent="SUBMITTED"; dr.appendChild(b);}
+    lft.appendChild(dr);
+
+    const sub=e("div","",{fontSize:"11px",color:"var(--muted)",marginTop:"3px"});
+    sub.textContent=done+" of "+sc.length+" tasks · "+glcVals.length+" glucose reading"+(glcVals.length!==1?"s":"");
+    lft.appendChild(sub);
+
+    if(glcVals.length>0){
+      const chips=e("div","",{display:"flex",gap:"6px",marginTop:"6px",flexWrap:"wrap"});
+      glcVals.forEach(v=>{const c=e("span","chip"); c.textContent=v+" mg/dL"; chips.appendChild(c);}); 
+      lft.appendChild(chips);
+    }
+    if(note){
+      const np=e("div","",{fontSize:"11px",color:"var(--muted)",marginTop:"6px",fontStyle:"italic",lineHeight:"1.5"});
+      np.textContent='"'+(note.length>80?note.slice(0,80)+"...":note)+'"'; lft.appendChild(np);
+    }
+    top.appendChild(lft);
+
+    const rgt=e("div","",{textAlign:"right",flexShrink:"0",marginLeft:"12px"});
+    const pv=e("div","fw",{fontSize:"22px",color:col}); pv.textContent=pct+"%"; rgt.appendChild(pv);
+    if(pct===100){const tr=e("div","",{fontSize:"14px",marginTop:"2px"});tr.textContent="🏆";rgt.appendChild(tr);}
+    top.appendChild(rgt); row.appendChild(top);
+
+    const mb=e("div","mbar");
+    const mf=e("div","",{height:"100%",borderRadius:"999px",background:col,width:pct+"%"}); mb.appendChild(mf);
+    row.appendChild(mb); panel.appendChild(row);
+  });
+
+  const ft=e("div","",{textAlign:"center",padding:"16px 0",fontSize:"11.5px",color:"var(--muted)"});
+  ft.textContent=dates.length+" day"+(dates.length!==1?"s":"")+" recorded"; panel.appendChild(ft);
+}
+
+// ─── RENDER HEALTH PROGRESS (charts) ────────────────────
+function renderProgress(){
+  const panel=document.getElementById("p-progress"); panel.innerHTML="";
+
+  const hdr=e("div","card",{marginBottom:"14px"});
+  const ht=e("div","fw",{fontSize:"14px",color:"var(--white)",marginBottom:"4px"}); ht.textContent="📈 Health Progress — All Parameters";
+  const hs=e("div","",{fontSize:"12px",color:"var(--muted)",lineHeight:"1.6"});
+  hs.textContent="Charts update automatically as you edit values in the Health tab. Each entry is timestamped. Scroll down to see all parameters.";
+  hdr.appendChild(ht); hdr.appendChild(hs); panel.appendChild(hdr);
+
+  // Collect snapshots from health param history
+  const snapKeys=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith("nk-hsnap-")) snapKeys.push(k);
+  }
+  snapKeys.sort();
+  const snaps=snapKeys.map(k=>sg(k));
+  // Add current as latest
+  const cur=gHealth();
+  cur._date="Current";
+  const allSnaps=[...snaps,cur];
+
+  // Chart helper using SVG
+  function makeChart(title, color, snapKey, unit, targetLine, goodFn){
+    const wrap=e("div","chart-wrap");
+    const ct=e("div","chart-title"); ct.textContent=title; wrap.appendChild(ct);
+
+    const vals=allSnaps.map(s=>{
+      const raw=s[snapKey]||"";
+      return parseFloat(raw.toString().replace(/[^\d.]/g,""))||null;
+    }).filter(v=>v!==null);
+
+    const labels=allSnaps.filter(s=>{
+      const raw=s[snapKey]||"";
+      return parseFloat(raw.toString().replace(/[^\d.]/g,""))>0;
+    }).map(s=>s._date||"?");
+
+    if(vals.length<1){
+      const nd=e("div","chart-no-data"); nd.textContent="No data yet — update this value in Health tab to see your progress here.";
+      wrap.appendChild(nd); return wrap;
+    }
+    if(vals.length===1){
+      const nd=e("div","chart-no-data"); 
+      nd.textContent="Current: "+vals[0]+unit+"   Target: "+targetLine+unit+"   Update again after your next measurement to see trend.";
+      nd.style.fontStyle="normal"; nd.style.color="#7a9ab8";
+      wrap.appendChild(nd); return wrap;
+    }
+
+    // Draw SVG chart
+    const W=360, H=120, PAD={t:12,r:10,b:28,l:40};
+    const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
+    const allV=[...vals, targetLine?parseFloat(targetLine):null].filter(v=>v);
+    const minV=Math.min(...allV)*0.92, maxV=Math.max(...allV)*1.08;
+    const xS=(i)=>PAD.l+i*(cW/(vals.length-1||1));
+    const yS=(v)=>PAD.t+cH-(((v-minV)/(maxV-minV||1))*cH);
+    const ns="http://www.w3.org/2000/svg";
+
+    const svg=document.createElementNS(ns,"svg");
+    svg.setAttribute("viewBox","0 0 "+W+" "+H);
+    svg.setAttribute("class","chart-canvas");
+    svg.style.background="#040e1c";
+    svg.style.borderRadius="8px";
+
+    // Grid lines
+    [0,.25,.5,.75,1].forEach(f=>{
+      const y=PAD.t+cH*(1-f);
+      const gl=document.createElementNS(ns,"line");
+      gl.setAttribute("x1",PAD.l); gl.setAttribute("x2",W-PAD.r);
+      gl.setAttribute("y1",y); gl.setAttribute("y2",y);
+      gl.setAttribute("stroke","#172d4a"); gl.setAttribute("stroke-width","0.5");
+      svg.appendChild(gl);
+      const tv=document.createElementNS(ns,"text");
+      tv.setAttribute("x",PAD.l-3); tv.setAttribute("y",y+3);
+      tv.setAttribute("text-anchor","end"); tv.setAttribute("font-size","8");
+      tv.setAttribute("fill","#4d6a88");
+      tv.textContent=Math.round(minV+(maxV-minV)*f);
+      svg.appendChild(tv);
+    });
+
+    // Target line
+    if(targetLine){
+      const tl=parseFloat(targetLine);
+      const ty=yS(tl);
+      const tline=document.createElementNS(ns,"line");
+      tline.setAttribute("x1",PAD.l); tline.setAttribute("x2",W-PAD.r);
+      tline.setAttribute("y1",ty); tline.setAttribute("y2",ty);
+      tline.setAttribute("stroke","#00c9a7"); tline.setAttribute("stroke-width","1");
+      tline.setAttribute("stroke-dasharray","4,3"); tline.setAttribute("opacity","0.6");
+      svg.appendChild(tline);
+      const tlbl=document.createElementNS(ns,"text");
+      tlbl.setAttribute("x",W-PAD.r+2); tlbl.setAttribute("y",ty+3);
+      tlbl.setAttribute("font-size","7"); tlbl.setAttribute("fill","#00c9a7"); tlbl.setAttribute("opacity","0.8");
+      tlbl.textContent="TGT";
+      svg.appendChild(tlbl);
+    }
+
+    // Area fill
+    let pathD="M "+xS(0)+" "+yS(vals[0]);
+    for(let i=1;i<vals.length;i++) pathD+=" L "+xS(i)+" "+yS(vals[i]);
+    pathD+=" L "+xS(vals.length-1)+" "+(PAD.t+cH)+" L "+xS(0)+" "+(PAD.t+cH)+" Z";
+    const area=document.createElementNS(ns,"path");
+    area.setAttribute("d",pathD); area.setAttribute("fill",color+"22");
+    svg.appendChild(area);
+
+    // Line
+    let lineD="M "+xS(0)+" "+yS(vals[0]);
+    for(let i=1;i<vals.length;i++) lineD+=" L "+xS(i)+" "+yS(vals[i]);
+    const line=document.createElementNS(ns,"path");
+    line.setAttribute("d",lineD); line.setAttribute("fill","none");
+    line.setAttribute("stroke",color); line.setAttribute("stroke-width","2");
+    line.setAttribute("stroke-linecap","round"); line.setAttribute("stroke-linejoin","round");
+    svg.appendChild(line);
+
+    // Points + labels
+    vals.forEach((v,i)=>{
+      const cx=xS(i), cy=yS(v);
+      const good=goodFn?goodFn(v):null;
+      const ptColor=good===null?color:good?"#34d399":"#ff7070";
+      const circle=document.createElementNS(ns,"circle");
+      circle.setAttribute("cx",cx); circle.setAttribute("cy",cy); circle.setAttribute("r","4");
+      circle.setAttribute("fill",ptColor); circle.setAttribute("stroke","#04101f");
+      circle.setAttribute("stroke-width","1.5");
+      svg.appendChild(circle);
+      const vt=document.createElementNS(ns,"text");
+      vt.setAttribute("x",cx); vt.setAttribute("y",cy-8);
+      vt.setAttribute("text-anchor","middle"); vt.setAttribute("font-size","9");
+      vt.setAttribute("fill","var(--white)"); vt.setAttribute("font-weight","700");
+      vt.textContent=v+unit;
+      svg.appendChild(vt);
+      if(labels[i]){
+        const lt=document.createElementNS(ns,"text");
+        lt.setAttribute("x",cx); lt.setAttribute("y",H-4);
+        lt.setAttribute("text-anchor","middle"); lt.setAttribute("font-size","7.5");
+        lt.setAttribute("fill","#4d6a88");
+        lt.textContent=labels[i].length>8?labels[i].slice(0,8):labels[i];
+        svg.appendChild(lt);
+      }
+    });
+
+    wrap.appendChild(svg);
+    // Legend
+    const leg=e("div","chart-legend");
+    const l1=e("div","chart-leg-item");
+    const ld1=e("div","chart-leg-dot",{background:color}); l1.appendChild(ld1);
+    const lt1=document.createTextNode("Your progress"); l1.appendChild(lt1); leg.appendChild(l1);
+    if(targetLine){
+      const l2=e("div","chart-leg-item");
+      const ld2=e("div","chart-leg-dot",{background:"#00c9a7",borderRadius:"0"}); l2.appendChild(ld2);
+      const lt2=document.createTextNode("Target"); l2.appendChild(lt2); leg.appendChild(l2);
+    }
+    wrap.appendChild(leg);
+    return wrap;
+  }
+
+  // Render all charts
+  panel.appendChild(makeChart("⚖️ Weight (kg)",           "#ff7040","weight","kg",89,  v=>v<=89));
+  panel.appendChild(makeChart("📊 BMI",                   "#ff9933","bmi","",33,     v=>v<=33));
+  panel.appendChild(makeChart("🧬 Biological Age (yrs)",  "#a78bfa","bioage","",70,   v=>v<=70));
+  panel.appendChild(makeChart("🔥 Body Fat %",            "#fb923c","fatpct","%",28,  v=>v<=28));
+  panel.appendChild(makeChart("🚨 Visceral Fat %",        "#ff4040","vfat","%",16,    v=>v<=16));
+  panel.appendChild(makeChart("💪 Muscle Mass %",         "#34d399","muscle","%",29,  v=>v>=29));
+  panel.appendChild(makeChart("⚡ RMR (kcal)",            "#3d8fff","rmr","",2200,    v=>v>=2200));
+  panel.appendChild(makeChart("🔴 CRP (mg/L)",            "#f472b6","crp","",3,       v=>v<=3));
+
+  const tip=e("div","",{fontSize:"11.5px",color:"var(--muted)",textAlign:"center",marginTop:"6px",lineHeight:"1.8"});
+  tip.textContent="Tip: Update your Health tab values after each body composition measurement. Each save creates a new data point here.";
+  panel.appendChild(tip);
+
+  // Also show labs history if available
+  const labsHist=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith("nk-labs-")){
+      const d=k.slice(8); const v=sg(k);
+      if(v&&(v.hba1c||v.homa||v.fasting_i)) labsHist.push({date:fShort(d),...v});
+    }
+  }
+  labsHist.sort((a,b)=>a.date>b.date?1:-1);
+  if(labsHist.length>0){
+    const labWrap=e("div","chart-wrap",{marginTop:"6px"});
+    const labTt=e("div","chart-title"); labTt.textContent="🧪 Lab Values History — HbA1c · HOMA-IR · Fasting Insulin"; labWrap.appendChild(labTt);
+    const tbl=e("div","",{overflowX:"auto"});
+    const table=document.createElement("table");
+    table.style.cssText="width:100%;border-collapse:collapse;font-size:12px";
+    const thead=document.createElement("thead");
+    const hr=document.createElement("tr");
+    ["Date","HbA1c %","Fasting Insulin","Fasting Glucose","HOMA-IR"].forEach(h=>{
+      const th=document.createElement("th");
+      th.style.cssText="padding:7px 10px;text-align:left;color:var(--muted);font-size:10px;letter-spacing:1px;border-bottom:1px solid var(--bdr)";
+      th.textContent=h; hr.appendChild(th);
+    });
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody=document.createElement("tbody");
+    labsHist.forEach((row,i)=>{
+      const tr=document.createElement("tr");
+      tr.style.background=i%2===0?"transparent":"rgba(0,0,0,.15)";
+      [row.date, row.hba1c?row.hba1c+"%":"—", row.fasting_i?row.fasting_i+" µIU/mL":"—", row.fasting_g?row.fasting_g+" mg/dL":"—", row.homa?row.homa:"—"].forEach((v,ci)=>{
+        const td=document.createElement("td");
+        td.style.cssText="padding:7px 10px;color:"+(ci===0?"var(--white)":"var(--text)")+";border-bottom:1px solid var(--bdr)44";
+        td.textContent=v; tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody); tbl.appendChild(table); labWrap.appendChild(tbl);
+    panel.appendChild(labWrap);
+  }
+}
+
+// ─── NAVIGATION ─────────────────────────────────────────
+function navigate(ds){
+  curDate=ds; refreshHeader(); renderCurrentTab();
+}
+function setTab(id){
+  curTab=id;
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.tab===id));
+  ["tracker","glucose","health","meds","history","progress"].forEach(n=>{
+    document.getElementById("p-"+n).style.display=n===id?"block":"none";
+  });
+  renderCurrentTab();
+}
+function renderCurrentTab(){
+  if(curTab==="tracker")       renderTracker();
+  else if(curTab==="glucose")  renderGlucose();
+  else if(curTab==="health")   renderHealth();
+  else if(curTab==="meds")     renderMeds();
+  else if(curTab==="history")  renderHistory();
+  else if(curTab==="progress") renderProgress();
+}
+
+
+// ─── LEARNING ENGINE ─────────────────────────────────────────────────────
+// Builds coaching analysis from previous day's stored data — runs locally, no internet needed
+function buildLearning(prevDate) {
+  // Always reads LIVE from storage — reflects any revisions made before re-submit
+  const note     = gN(prevDate) || "";
+  const glc      = gG(prevDate);
+  const tk       = gT(prevDate);
+  const mds      = gM(prevDate);
+  const sc       = sched(prevDate);
+  const allMeds  = [...MEDS, ...SUPPS];
+
+  // ── Compute composite progress (tasks + medicines) ──────────────────
+  const taskDone  = sc.filter(r => tk[r.id]).length;
+  const medsDone  = allMeds.filter(m => mds[m.id]).length;
+  const totalDone = taskDone + medsDone;
+  const totalAll  = sc.length + allMeds.length;
+  const pct       = Math.round(totalDone / totalAll * 100);
+  const taskPct   = Math.round(taskDone / sc.length * 100);
+  const medPct    = Math.round(medsDone / allMeds.length * 100);
+
+  // ── Identify which specific medicines were missed ────────────────────
+  const missedPrescribed = MEDS.filter(m => !mds[m.id]);
+  const missedSupps      = SUPPS.filter(s => !mds[s.id]).filter(s => s.p === "crit" || s.p === "high");
+  const criticalMissed   = MEDS.filter(m => !mds[m.id] && (
+    m.name.includes("Ecosprin") || m.name.includes("Glycomet") || m.name.includes("Alcita")
+  ));
+
+  // ── Glucose ──────────────────────────────────────────────────────────
+  const fasting  = glc["w05"] || glc["e05"] || null;
+  const postBrk  = glc["w12"] || glc["e12"] || null;
+  const postLun  = glc["w19"] || glc["e19"] || null;
+  const preSleep = glc["w32"] || glc["e31"] || null;
+
+  if (!note && taskDone === 0 && medsDone === 0) return null;
+
+  const sections = [];
+  const alerts   = [];   // 🔴 high-priority medicine alerts shown at top
+  const tags     = [];
+
+  // ══════════════════════════════════════════════════════════════════════
+  // MEDICINE ANALYSIS — this runs FIRST, alerts shown before anything else
+  // ══════════════════════════════════════════════════════════════════════
+  if (medsDone === allMeds.length) {
+    tags.push({t:"💊 All medicines taken ✓", c:"#00c9a7"});
+  } else {
+    // Critical prescribed medicines missed
+    if (criticalMissed.length > 0) {
+      const names = criticalMissed.map(m => m.name).join(", ");
+      alerts.push({
+        level: "critical",
+        text: "CRITICAL MEDICINE ALERT — " + names + " not ticked yesterday. These are non-negotiable for your cardiac stent and diabetes management. Ecosprin prevents clot formation in your stented artery — missing even one dose increases risk. Glycomet Trio-2 missed at dinner means overnight glucose was uncontrolled. Please confirm you actually took these and tick them in yesterday's Medicines tab if so."
+      });
+      tags.push({t:"⚠ Critical medicine missed", c:"#ff4040"});
+    } else if (missedPrescribed.length > 0) {
+      const names = missedPrescribed.map(m => m.name).join(", ");
+      alerts.push({
+        level: "warning",
+        text: "Medicine check — " + names + " not recorded as taken yesterday. If you took them but forgot to tick, please update yesterday's record. If genuinely missed, inform your doctor at next visit. Your Glycomet Trio-2 doses are particularly important — the Glimepiride component requires regular dosing to maintain stable glucose levels."
+      });
+      tags.push({t:"⚠ " + missedPrescribed.length + " medicine(s) not logged", c:"#ffaa00"});
+    }
+
+    // High-priority supplements missed
+    if (missedSupps.length > 0) {
+      const names = missedSupps.map(s => s.n).join(", ");
+      const suppPara = "Supplements not logged yesterday: " + names + ". "
+        + (missedSupps.some(s=>s.n.includes("CoQ10"))
+          ? "CoQ10 is especially important — your Atorva 20mg (statin) depletes CoQ10 daily. Missing it means your heart muscle cells are running low on this essential energy molecule. "
+          : "")
+        + (missedSupps.some(s=>s.n.includes("Omega-3"))
+          ? "Omega-3 is your most urgent supplement given CRP=13. Every missed dose is a day without your primary anti-inflammatory defence. "
+          : "")
+        + "Aim to keep high-priority supplements at 100% — lay them out the night before.";
+      sections.push(suppPara);
+      tags.push({t:"⚠ Supplements missed: " + missedSupps.length, c:"#fb923c"});
+    }
+  }
+
+  // Medicine compliance summary tag
+  tags.push({t:"💊 " + medsDone + "/" + allMeds.length + " medicines+supps", c: medPct === 100 ? "#00c9a7" : medPct >= 70 ? "#ffaa00" : "#ff4040"});
+
+  // ══════════════════════════════════════════════════════════════════════
+  // OVERALL PROGRESS (tasks + medicines combined)
+  // ══════════════════════════════════════════════════════════════════════
+  let progressPara = "";
+  if (pct === 100) {
+    progressPara = "Perfect day — " + pct + "% overall (tasks + medicines both complete). Every task done and every medicine taken. This is exactly the compound discipline that moves the biological age needle. Dr. Brewer's smooth CIMT curve comes from days exactly like this.";
+    tags.push({t:"🏆 100% overall", c:"#00c9a7"});
+  } else if (taskPct === 100 && medPct < 100) {
+    progressPara = "All tasks completed (" + taskPct + "%) but medicine compliance was " + medPct + "%. Tasks and medicines together form the complete protocol — one without the other is incomplete. Today, set an alarm for each medicine timing.";
+  } else if (medPct === 100 && taskPct < 100) {
+    progressPara = "All medicines taken correctly (" + medPct + "%) — excellent on the most critical part. Task completion was " + taskPct + "%. The lifestyle tasks (walks, diet sequence, kefir) amplify what your medicines are doing. Both together create the compounding effect.";
+  } else if (pct >= 75) {
+    progressPara = "Overall " + pct + "% yesterday — " + taskPct + "% tasks, " + medPct + "% medicines. Good, but the gap to 100% has specific consequences: each missed post-meal walk = glucose 20–40 mg/dL higher; each missed supplement = a day without its protective effect. Find the pattern in what's slipping.";
+  } else {
+    progressPara = "Overall " + pct + "% yesterday (" + taskPct + "% tasks, " + medPct + "% medicines). On lower-compliance days, protect the non-negotiable core: morning medicines, Ecosprin (never skip), post-dinner walk, pre-sleep glucose check. These 4 items are the minimum floor every day without exception.";
+    tags.push({t:pct + "% overall", c:"#ff7040"});
+  }
+  if (progressPara) sections.push(progressPara);
+
+  // ══════════════════════════════════════════════════════════════════════
+  // GLUCOSE ANALYSIS
+  // ══════════════════════════════════════════════════════════════════════
+  let glcPara = "";
+  if (fasting) {
+    if (fasting < 100) {
+      glcPara = "Fasting glucose " + fasting + " mg/dL yesterday — outstanding, this is pre-reversal territory. The low-carb protocol is working at the hormonal level. Protect this by keeping dinner carbs under 20g tonight.";
+      tags.push({t:"Fasting: " + fasting + " ✓ Excellent", c:"#00c9a7"});
+    } else if (fasting < 110) {
+      glcPara = "Fasting glucose " + fasting + " mg/dL is in the control zone, approaching the pre-reversal threshold of <110. Morning domestic activity and kefir are contributing — keep both consistent.";
+      tags.push({t:"Fasting: " + fasting + " ✓ Good", c:"#a3e635"});
+    } else if (fasting < 130) {
+      glcPara = "Fasting glucose " + fasting + " mg/dL is above target (<110). This typically reflects what was eaten or skipped after 7 PM. Review last night's dinner and whether the post-dinner walk happened — these two factors alone account for most morning reading variation.";
+      tags.push({t:"Fasting: " + fasting + " ↑ Needs work", c:"#ffaa00"});
+    } else {
+      glcPara = "Fasting glucose " + fasting + " mg/dL is significantly elevated. Check three things: were dinner carbs under 20g, was the post-dinner walk done, and was Glycomet Trio-2 after dinner taken. All three act together overnight — missing any one can push the morning reading this high.";
+      tags.push({t:"Fasting: " + fasting + " ↑↑ High", c:"#ff4040"});
+    }
+  }
+  if (postLun) {
+    if (postLun < 140) tags.push({t:"Post-lunch: " + postLun + " ✓", c:"#00c9a7"});
+    else               tags.push({t:"Post-lunch: " + postLun + " ↑", c:"#ffaa00"});
+  }
+  if (preSleep) {
+    if (preSleep >= 90 && preSleep <= 110) tags.push({t:"Pre-sleep: " + preSleep + " ✓", c:"#00c9a7"});
+    else if (preSleep > 110)               tags.push({t:"Pre-sleep: " + preSleep + " ↑", c:"#ffaa00"});
+    else                                   tags.push({t:"Pre-sleep: " + preSleep + " ↓ Low — eat 2 walnuts", c:"#ff7070"});
+  }
+  if (glcPara) sections.push(glcPara);
+
+  // ══════════════════════════════════════════════════════════════════════
+  // NOTE ANALYSIS (keyword matching)
+  // ══════════════════════════════════════════════════════════════════════
+  const nl = note.toLowerCase();
+  const noteParas = [];
+
+  if (/tired|fatigue|exhausted|low energy|sleepy|drained/.test(nl)) {
+    noteParas.push("You mentioned fatigue yesterday. In a T2D patient on Glycomet Trio-2, this can signal post-meal glucose crashes (Glimepiride stimulates insulin production regardless of food intake). Check whether fatigue hit 2–3 hours after eating — if so, the meal was too carb-heavy. Also ensure you're drinking 2.5–3 litres of water — dehydration mimics fatigue.");
+    tags.push({t:"Energy dip noted", c:"#fb923c"});
+  }
+  if (/energy|active|fresh|felt well|good day|great day/.test(nl)) {
+    noteParas.push("Good energy reported yesterday — a positive metabolic signal. High stable energy on low-carb means your body is efficiently using fat for fuel instead of riding glucose spikes and crashes. Note what you ate and replicate it today.");
+    tags.push({t:"Good energy", c:"#00c9a7"});
+  }
+  if (/missed.*walk|skip.*walk|no walk|did not walk|couldn.*walk/.test(nl)) {
+    noteParas.push("Post-dinner walk missed yesterday. This is the single highest-impact lifestyle intervention for your overnight fasting glucose. A 20-minute walk after dinner reduces the post-meal glucose peak by 20–40 mg/dL and directly lowers the next morning's fasting reading. Make it the last thing before winding down — non-negotiable tonight.");
+    tags.push({t:"Walk missed", c:"#ff7040"});
+  }
+  if (/rice|roti|bread|wheat|maida|biscuit|sweet|mithai|sugar|fried/.test(nl)) {
+    noteParas.push("Your note mentions high-carb or refined foods. Each such meal triggers the insulin spiral: glucose spike → insulin spike → arterial wall inflammation → plaque progression. With CRP=13, this is not abstract — it is measurable vascular damage. Your Alcita 100 (Alogliptin) helps buffer post-meal spikes but cannot neutralise a large carb load. Diet does the heavy lifting.");
+    tags.push({t:"High-carb food noted", c:"#ff4040"});
+  }
+  if (/paneer|eggs|dal|sabzi|salad|kefir|nuts|walnut|almond|sprout|beet/.test(nl)) {
+    noteParas.push("Good food choices noted. Protein-and-fibre-first eating is the foundation of the Brewer protocol — this sequence blunts post-meal spikes by slowing gastric emptying and reducing the insulin response. The beet juice for nitric oxide is a particularly powerful habit for your arterial health. Keep this pattern at lunch today.");
+    tags.push({t:"Good food choices", c:"#00c9a7"});
+  }
+  if (/sleep|slept|insomnia|woke|awake|poor sleep|bad sleep/.test(nl)) {
+    noteParas.push("Sleep quality came up. Poor sleep raises cortisol which elevates fasting glucose by 20–30 mg/dL — it also increases insulin resistance and suppresses the nighttime endothelial repair that Dr. Brewer emphasises. Tonight: Magnesium Glycinate supplement (already on your list), cool room, gentle cycling only (not vigorous), no food after 9:30 PM.");
+    tags.push({t:"Sleep issue noted", c:"#a78bfa"});
+  }
+  if (/stress|anxious|worry|tension|upset|difficult|hard day/.test(nl)) {
+    noteParas.push("Stress noted yesterday. Psychological stress directly worsens insulin resistance through cortisol — this is biochemistry, not mindset. Today protect the morning sequence: bath → Gurucharitra → terrace sunlight → kefir → medicines. Each step in this chain lowers morning cortisol. Missing any one of them compounds the stress effect on your glucose.");
+    tags.push({t:"Stress noted", c:"#f472b6"});
+  }
+  if (/gurucharitra|puja|prayer|reading|spiritual/.test(nl)) {
+    noteParas.push("Spiritual practice noted. Dr. Brewer's protocol explicitly includes stress management as a cardiovascular intervention — cortisol is a direct driver of insulin resistance and arterial inflammation. Your Gurucharitra reading at a fixed time each morning anchors the cortisol rhythm for the rest of the day. This is not separate from your health protocol — it is mechanistically part of it.");
+    tags.push({t:"Spiritual practice noted", c:"#ff9933"});
+  }
+  if (/glucose|sugar|reading|fasting was|sugar was/.test(nl)) {
+    noteParas.push("You are self-monitoring glucose — this habit alone separates the people who reverse T2D from those who don't. Show this log to your diabetologist consistently. When fasting glucose is sub-110 for 6 consecutive weeks, that is the data point that initiates medicine tapering. Every reading you log is evidence.");
+    tags.push({t:"Self-monitoring active", c:"#f472b6"});
+  }
+  if (note.length > 20 && noteParas.length === 0) {
+    noteParas.push("Your daily note shows active engagement with the protocol. The patterns you observe — energy, hunger, mood, physical sensations — are real metabolic signals that no blood test captures. Over weeks of journaling, you will start connecting specific choices to specific readings. This is the most powerful personalised insight available.");
+  }
+
+  sections.push(...noteParas.slice(0, 2));
+
+  // ── Limit total ──────────────────────────────────────────────────────
+  const final = sections.slice(0, 3);
+  if (final.length === 0) {
+    final.push("Start writing daily notes and logging glucose readings — the more data you provide, the more specific and useful this coaching becomes. Today's non-negotiables: all prescribed medicines at correct times, post-dinner walk, pre-sleep glucose log.");
+  }
+
+  return {
+    paras: final,
+    alerts: alerts,
+    tags: tags.slice(0, 7),
+    from: fShort(prevDate),
+    pct, taskPct, medPct,
+    taskDone, totalTaskItems: sc.length,
+    medsDone, totalMeds: allMeds.length,
+    fasting,
+    missedPrescribed: missedPrescribed.map(m => m.name),
+    criticalMissed: criticalMissed.map(m => m.name)
+  };
+}
+
+// ─── RENDER LEARNING BOX ─────────────────────────────────
+function renderLearningBox(prevDate) {
+  const aiResult = gAI(prevDate);  // AI-generated analysis stored from yesterday's submit
+  const data     = buildLearning(prevDate);  // local analysis always computed
+
+  // Nothing to show if no data at all
+  if(!data && !aiResult) return null;
+
+  const box = document.createElement("div");
+  box.className = "lbox";
+
+  // ── Header ────────────────────────────────────────────────────────────
+  const hdr = document.createElement("div");
+  hdr.className = "lbox-hdr";
+  const icon = document.createElement("div");
+  icon.className = "lbox-icon"; icon.textContent = "\uD83E\uDDE0";
+  const ttl = document.createElement("div");
+  ttl.className = "lbox-ttl"; ttl.textContent = "LEARNING FROM YESTERDAY";
+  const dt = document.createElement("div");
+  dt.className = "lbox-date"; dt.textContent = data ? data.from : fShort(prevDate);
+  hdr.appendChild(icon); hdr.appendChild(ttl); hdr.appendChild(dt);
+  box.appendChild(hdr);
+
+  // ── If AI analysis is loading ─────────────────────────────────────────
+  if(aiResult === "__loading__"){
+    const ld = document.createElement("div");
+    ld.style.cssText = "font-size:13px;color:var(--muted);font-style:italic;padding:8px 0 4px";
+    ld.textContent = "✨ Generating personalised AI coaching from yesterday's notes...";
+    box.appendChild(ld);
+    // Still show local progress stats below
+  }
+
+  // ── Progress summary bar ─────────────────────────────────────────────
+  const progRow = document.createElement("div");
+  progRow.style.cssText = "display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;background:rgba(0,0,0,.25);border-radius:10px";
+  [
+    {icon:"📊", label:"Overall",  val:data.pct+"%",       col: data.pct===100?"#00c9a7":data.pct>=75?"#ffaa00":"#ff7040"},
+    {icon:"🗓",  label:"Tasks",   val:data.taskDone+"/"+data.totalTaskItems, col: data.taskPct===100?"#00c9a7":data.taskPct>=75?"#ffaa00":"#ff7040"},
+    {icon:"💊", label:"Medicines",val:data.medsDone+"/"+data.totalMeds,      col: data.medPct===100?"#00c9a7":data.medPct>=80?"#ffaa00":"#ff4040"},
+  ].forEach(item => {
+    const seg = document.createElement("div");
+    seg.style.cssText = "flex:1;min-width:80px;text-align:center";
+    const sv = document.createElement("div");
+    sv.style.cssText = "font-size:17px;font-weight:900;color:"+item.col;
+    sv.textContent = item.val;
+    const sl = document.createElement("div");
+    sl.style.cssText = "font-size:9.5px;color:var(--muted);margin-top:2px;letter-spacing:.5px";
+    sl.textContent = item.icon+" "+item.label;
+    seg.appendChild(sv); seg.appendChild(sl);
+    progRow.appendChild(seg);
+  });
+  box.appendChild(progRow);
+
+  // ── CRITICAL ALERTS (medicines) shown prominently ────────────────────
+  if (data.alerts && data.alerts.length > 0) {
+    data.alerts.forEach(alert => {
+      const ab = document.createElement("div");
+      const isCrit = alert.level === "critical";
+      ab.style.cssText = "background:"+(isCrit?"rgba(255,64,64,.12)":"rgba(255,170,0,.1)")+";border:1px solid "+(isCrit?"rgba(255,64,64,.5)":"rgba(255,170,0,.4)")+";border-left:4px solid "+(isCrit?"#ff4040":"#ffaa00")+";border-radius:10px;padding:12px 14px;margin-bottom:11px";
+      const alertIcon = document.createElement("div");
+      alertIcon.style.cssText = "font-size:11px;font-weight:800;letter-spacing:1px;color:"+(isCrit?"#ff4040":"#ffaa00")+";margin-bottom:6px";
+      alertIcon.textContent = (isCrit ? "🚨 CRITICAL MEDICINE ALERT" : "⚠️ MEDICINE CHECK");
+      const alertBody = document.createElement("div");
+      alertBody.style.cssText = "font-size:13px;color:"+(isCrit?"#ffaaaa":"#ffd080")+";line-height:1.65";
+      alertBody.textContent = alert.text;
+      ab.appendChild(alertIcon); ab.appendChild(alertBody);
+      box.appendChild(ab);
+    });
+  }
+
+  // ── Analysis paragraphs: AI if available, else local ────────────────
+  if(aiResult && aiResult !== "__loading__" && aiResult.text){
+    // Online AI analysis — show prominently
+    const aiPara = document.createElement("div");
+    aiPara.className = "lbox-para"; aiPara.textContent = aiResult.text;
+    box.appendChild(aiPara);
+    const aiTag = document.createElement("div");
+    aiTag.style.cssText = "font-size:10px;color:rgba(0,201,167,.6);margin-bottom:8px;font-style:italic";
+    aiTag.textContent = "✨ AI coaching generated at "+aiResult.ts+" based on your notes";
+    box.appendChild(aiTag);
+  } else if(aiResult !== "__loading__" && data) {
+    // Local analysis fallback
+    data.paras.forEach(p => {
+      const para = document.createElement("div");
+      para.className = "lbox-para"; para.textContent = p;
+      box.appendChild(para);
+    });
+  }
+
+  // ── Tags ─────────────────────────────────────────────────────────────
+  if (data.tags.length > 0) {
+    const tagRow = document.createElement("div");
+    tagRow.style.cssText = "margin-top:10px;display:flex;flex-wrap:wrap;gap:4px";
+    data.tags.forEach(tg => {
+      const tag = document.createElement("span");
+      tag.className = "lbox-tag";
+      tag.style.cssText = "background:"+tg.c+"22;color:"+tg.c+";border:1px solid "+tg.c+"55";
+      tag.textContent = tg.t;
+      tagRow.appendChild(tag);
+    });
+    box.appendChild(tagRow);
+  }
+
+  // ── Footer ────────────────────────────────────────────────────────────
+  const foot = document.createElement("div");
+  foot.className = "lbox-footer";
+  const noteTs = gNts(prevDate);
+  foot.textContent = "Analysis: "+data.from+" · Overall "+data.pct+"% · Tasks "+data.taskPct+"% · Medicines "+data.medPct+"%"
+    + (data.fasting?" · Fasting: "+data.fasting+" mg/dL":"")
+    + (noteTs?" · Note saved: "+noteTs:"");
+  box.appendChild(foot);
+  return box;
+}
+
+
+// ─── ONLINE AI ANALYSIS (triggers on submit when internet available) ──
+async function generateAIAnalysis(dateStr) {
+  const note      = gN(dateStr) || "";
+  const glc       = gG(dateStr);
+  const mds       = gM(dateStr);
+  const sc        = sched(dateStr);
+  const allMeds   = [...MEDS, ...SUPPS];
+  const taskDone  = sc.filter(r=>gT(dateStr)[r.id]).length;
+  const medsDone  = allMeds.filter(m=>mds[m.id]).length;
+  const pct       = Math.round((taskDone+medsDone)/(sc.length+allMeds.length)*100);
+  const taskPct   = Math.round(taskDone/sc.length*100);
+  const medPct    = Math.round(medsDone/allMeds.length*100);
+  const fasting   = glc["w05"]||glc["e05"]||"not logged";
+  const postLun   = glc["w19"]||glc["e19"]||"not logged";
+  const preSleep  = glc["w32"]||glc["e31"]||"not logged";
+  const missedMeds = MEDS.filter(m=>!mds[m.id]).map(m=>m.name);
+  const nextDate  = addDays(dateStr, 1);
+
+  // Mark as loading
+  sAI(nextDate, "__loading__");
+
+  const prompt = `You are a health coach for Nandkumar Deshpande, 60 years old, Thane, Maharashtra, India.
+
+His profile: Type 2 Diabetes (reversing), cardiac stent, fatty liver, CRP=13 mg/L (severe inflammation), visceral fat 30% (3x safe limit), biological age 78 (18 years ahead of 60).
+
+His medicines: Alcita 100 (breakfast), Glycomet Trio-2 + Ecosprin 75mg (after lunch), Glycomet Trio-2 + Atorva 20mg (after dinner).
+
+His goal: Reverse T2D following Dr. Ford Brewer's PrevMed low-carb insulin resistance protocol. Target: CIMT reversal, CRP below 3, fasting glucose below 100, HOMA-IR below 2.
+
+Yesterday's data (${fShort(dateStr)}):
+- Overall compliance: ${pct}% (Tasks: ${taskPct}%, Medicines: ${medPct}%)
+- Fasting glucose: ${fasting} mg/dL
+- Post-lunch glucose: ${postLun} mg/dL
+- Pre-sleep glucose: ${preSleep} mg/dL
+- Missed prescribed medicines: ${missedMeds.length>0?missedMeds.join(", "):"None — all taken"}
+- His own notes: "${note||"No notes written"}"
+
+Write a warm, specific, medically-informed "Learning from Yesterday" coaching message for his dashboard tomorrow morning.
+
+Rules:
+- Address him as Nandkumar at least once
+- 2–3 short paragraphs (total 100–140 words)
+- Be specific to what he actually wrote in his notes
+- If any prescribed medicine was missed, lead with a clear but warm alert about it — especially Ecosprin (stent protection) and Glycomet Trio-2 (overnight glucose control)
+- Reference his actual glucose numbers if logged
+- Give 1–2 concrete actionable suggestions for today based on yesterday
+- Plain text only — no bullet points, no markdown, no headers`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 400,
+        messages: [{role:"user", content: prompt}]
+      })
+    });
+    if(!resp.ok) throw new Error("HTTP "+resp.status);
+    const data = await resp.json();
+    const text = data.content&&data.content[0]&&data.content[0].text;
+    if(text){
+      sAI(nextDate, {text, from: fShort(dateStr), ts: new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"}), online:true});
+    } else {
+      sAI(nextDate, null);
+    }
+  } catch(err) {
+    // Offline or API unavailable — clear loading state, local analysis will show instead
+    sAI(nextDate, null);
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────
+document.getElementById("btnPrev").onclick=()=>navigate(addDays(curDate,-1));
+document.getElementById("btnNext").onclick=()=>{if(curDate<TODAY)navigate(addDays(curDate,1));};
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+// Seed today in storage
+if(!sg("nk-t-"+TODAY))ss("nk-t-"+TODAY,{});
+// Seed baseline snapshot (Apr 2026) for Progress charts if none exist yet
+(function seedBaselineSnapshot(){
+  const hasAnySnap = (()=>{for(let i=0;i<localStorage.length;i++){if(localStorage.key(i)&&localStorage.key(i).startsWith("nk-hsnap-"))return true;}return false;})();
+  if(!hasAnySnap){
+    const baseline={weight:"105.2 kg",bmi:"40.7",bioage:"78 yrs",fatpct:"36.6%",vfat:"30%",muscle:"25.1%",rmr:"2054 kcal",crp:"13 mg/L",_date:"Apr 2026 (Baseline)"};
+    ss("nk-hsnap-2026-04-18",baseline);
+  }
+})();
+refreshHeader();
+renderTracker();
+</script>
+</body>
+</html>

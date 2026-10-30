@@ -210,6 +210,7 @@ footer{border-top:1px solid var(--bdr);margin-top:22px;padding-top:12px;text-ali
     <button class="tab"     data-tab="meds">💊<br>Medicines</button>
     <button class="tab"     data-tab="history">📅<br>History</button>
     <button class="tab"     data-tab="progress">📈<br>Progress</button>
+    <button class="tab"     data-tab="shortcuts">⚡<br>Shortcuts</button>
   </div>
 
   <!-- PANELS -->
@@ -219,6 +220,7 @@ footer{border-top:1px solid var(--bdr);margin-top:22px;padding-top:12px;text-ali
   <div id="p-meds"     style="display:none"></div>
   <div id="p-history"  style="display:none"></div>
   <div id="p-progress" style="display:none"></div>
+  <div id="p-shortcuts" style="display:none"></div>
 
   <footer>Nandkumar Deshpande · Metabolic Health Planner · April 2026<br>
   <span style="color:#0f1f30">Saved on this device · Submit each day · Browse history</span></footer>
@@ -1293,7 +1295,7 @@ function navigate(ds){
 function setTab(id){
   curTab=id;
   document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.tab===id));
-  ["tracker","glucose","health","meds","history","progress"].forEach(n=>{
+  ["tracker","glucose","health","meds","history","progress","shortcuts"].forEach(n=>{
     document.getElementById("p-"+n).style.display=n===id?"block":"none";
   });
   renderCurrentTab();
@@ -1305,6 +1307,125 @@ function renderCurrentTab(){
   else if(curTab==="meds")     renderMeds();
   else if(curTab==="history")  renderHistory();
   else if(curTab==="progress") renderProgress();
+  else if(curTab==="shortcuts") renderShortcuts();
+}
+
+// ─── SHORTCUT AUTOMATION ─────────────────────────────────
+// iPhone Shortcuts (or any link) can log data by opening this page with URL params:
+//   ?log=fasting|breakfast|lunch|sleep&value=112   → saves a glucose reading
+//   ?take=m1,m3,s1  or  ?take=morning|lunch|night   → ticks medicines/supplements
+//   ?tab=glucose                                    → opens a tab
+//   &date=YYYY-MM-DD (optional, defaults to today)
+const SC_READINGS={fasting:["w05","e05","Fasting"],breakfast:["w12","e12","Post-breakfast"],lunch:["w19","e19","Post-lunch"],sleep:["w32","e31","Pre-sleep"]};
+const SC_GROUPS={morning:["m1","s1","s2","s3","s8"],lunch:["m2","m3"],night:["m4","m5","s4","s6","s7","s10"]};
+const SC_TABS=["tracker","glucose","health","meds","history","progress","shortcuts"];
+function scBase(){return location.href.split(/[?#]/)[0];}
+function scToast(msg,ok){
+  const t=e("div","",{position:"fixed",left:"50%",top:"16px",transform:"translateX(-50%)",zIndex:"999",maxWidth:"90vw",
+    padding:"10px 16px",borderRadius:"10px",fontSize:"13px",fontWeight:"700",color:"#000",
+    background:ok?"#34d399":"#ff7070",boxShadow:"0 6px 20px rgba(0,0,0,.4)"});
+  t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),4000);
+}
+function scSaveGlucose(d,key,v){
+  const g=gG(d); g[key]=v; sG(d,g);
+  const t=gT(d); t[key]=true; sT(d,t);
+  if(key==="w05"||key==="e05"){
+    const l=gLabs(d); l.fasting_g=v;
+    if(l.fasting_i) l.homa=parseFloat(((v*l.fasting_i)/405).toFixed(2));
+    sLabs(d,l);
+  }
+}
+function handleShortcutURL(){
+  const q=new URLSearchParams(location.search);
+  if(![...q.keys()].length) return;
+  let d=q.get("date")||TODAY; const msgs=[]; let bad=false;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||d>TODAY){msgs.push("Invalid date");bad=true;d=TODAY;}
+  const log=(q.get("log")||"").toLowerCase();
+  if(log){
+    const r=SC_READINGS[log], v=parseFloat(q.get("value"));
+    if(!r){msgs.push("Unknown reading '"+log+"'");bad=true;}
+    else if(!v||isNaN(v)||v<20||v>600){msgs.push("Invalid glucose value");bad=true;}
+    else{scSaveGlucose(d,isWE(d)?r[1]:r[0],v);msgs.push(r[2]+" "+v+" mg/dL saved");}
+  }
+  const take=(q.get("take")||"").toLowerCase();
+  if(take){
+    const valid=new Set([...MEDS.map(m=>m.id),...SUPPS.map(s=>s.id)]);
+    const ids=take.split(",").flatMap(x=>SC_GROUPS[x.trim()]||[x.trim()]).filter(x=>valid.has(x));
+    if(ids.length){const m=gM(d);ids.forEach(i=>m[i]=true);sM(d,m);msgs.push(ids.length+" medicine(s) ticked");}
+    else{msgs.push("No valid medicines in '"+take+"'");bad=true;}
+  }
+  curDate=d;
+  const tab=q.get("tab");
+  if(tab&&SC_TABS.includes(tab)) curTab=tab;
+  else if(log) curTab="glucose"; else if(take) curTab="meds";
+  history.replaceState(null,"",scBase()); // so a reload doesn't log twice
+  if(msgs.length) scToast((bad?"⚠️ ":"✅ ")+msgs.join(" · "),!bad);
+}
+function renderShortcuts(){
+  const panel=document.getElementById("p-shortcuts"); panel.innerHTML="";
+  const base=scBase();
+  const intro=e("div","ibox",{background:"rgba(96,165,250,.08)",border:"1px solid rgba(96,165,250,.35)",color:"#bcd6ff",marginBottom:"14px",lineHeight:"1.6"});
+  intro.innerHTML="<strong style='font-size:12.5px'>⚡ Shortcut Automation</strong><br>"
+    +"Log readings and tick medicines from the iPhone <strong>Shortcuts</strong> app, Siri, or a scheduled automation. "
+    +"Each action is just a link to this page — opening it saves the data and shows a confirmation.";
+  panel.appendChild(intro);
+  if(location.protocol==="file:"){
+    const w=e("div","warnbox"); w.textContent="⚠️ This page is open as a local file. Shortcuts need it hosted at a web address (e.g. GitHub Pages), opened in Safari at that same address.";
+    panel.appendChild(w);
+  }
+  function linkRow(label,url){
+    const row=e("div","gcrd",{display:"flex",alignItems:"center",gap:"8px"});
+    const inf=e("div","",{flex:"1",minWidth:"0"});
+    const l=e("div","fw",{fontSize:"13px",color:"var(--white)"}); l.textContent=label; inf.appendChild(l);
+    const u=e("div","",{fontSize:"10.5px",color:"var(--muted)",wordBreak:"break-all",marginTop:"2px",fontFamily:"monospace"}); u.textContent=url; inf.appendChild(u);
+    const b=e("button","glc-btn",{flexShrink:"0"}); b.textContent="Copy";
+    b.onclick=()=>{
+      const done=()=>{b.textContent="✓ Copied";setTimeout(()=>b.textContent="Copy",1200);};
+      if(navigator.clipboard)navigator.clipboard.writeText(url).then(done,()=>prompt("Copy this link:",url));
+      else prompt("Copy this link:",url);
+    };
+    row.appendChild(inf); row.appendChild(b); return row;
+  }
+  // Builder
+  const lb0=e("div","lbl"); lb0.textContent="BUILD A LINK"; panel.appendChild(lb0);
+  const bc=e("div","gcrd");
+  const sel=e("select","glc-in",{width:"100%",marginBottom:"8px"});
+  [["fasting","Fasting glucose"],["breakfast","Post-breakfast glucose"],["lunch","Post-lunch glucose"],["sleep","Pre-sleep glucose"],
+   ["take:morning","Tick morning meds"],["take:lunch","Tick lunch meds"],["take:night","Tick night meds"]]
+    .forEach(([v,t])=>{const o=document.createElement("option");o.value=v;o.textContent=t;sel.appendChild(o);});
+  const inp=e("input","glc-in",{width:"100%",marginBottom:"8px"}); inp.type="number"; inp.placeholder="Value (mg/dL) — leave blank to ask each time";
+  const out=e("div");
+  function build(){
+    const v=sel.value, isTake=v.startsWith("take:");
+    inp.style.display=isTake?"none":"block";
+    const url=isTake?base+"?take="+v.slice(5):base+"?log="+v+"&value="+(inp.value||"[Provided Input]");
+    out.innerHTML=""; out.appendChild(linkRow(sel.options[sel.selectedIndex].text,url));
+  }
+  sel.onchange=build; inp.oninput=build;
+  bc.appendChild(sel); bc.appendChild(inp); bc.appendChild(out); panel.appendChild(bc); build();
+
+  // Ready-made links
+  const lb1=e("div","lbl mt"); lb1.textContent="READY-MADE MEDICINE LINKS"; panel.appendChild(lb1);
+  const nm=id=>(MEDS.find(m=>m.id===id)||{}).name||(SUPPS.find(s=>s.id===id)||{}).n;
+  [["morning","🌅 Morning"],["lunch","☀️ After lunch"],["night","🌙 After dinner / evening"]].forEach(([k,t])=>{
+    panel.appendChild(linkRow(t+" — "+SC_GROUPS[k].map(nm).join(", "),base+"?take="+k));
+  });
+
+  // Setup steps
+  const lb2=e("div","lbl mt"); lb2.textContent="SET UP ON IPHONE"; panel.appendChild(lb2);
+  const steps=e("div","gcrd",{fontSize:"12.5px",color:"var(--muted)",lineHeight:"1.7"});
+  steps.innerHTML="<strong style='color:var(--white)'>Glucose shortcut (asks for the number)</strong><ol style='margin:6px 0 12px 18px'>"
+    +"<li>Open <strong>Shortcuts</strong> → <strong>+</strong> new shortcut.</li>"
+    +"<li>Add <strong>Ask for Input</strong> → Type: <em>Number</em>, Prompt: “Fasting glucose?”.</li>"
+    +"<li>Add <strong>URL</strong> → paste the glucose link from the builder, then replace <code>[Provided Input]</code> with the <em>Provided Input</em> variable.</li>"
+    +"<li>Add <strong>Open URLs</strong>. Name it “Log fasting” — now you can say <em>“Hey Siri, log fasting”</em>.</li></ol>"
+    +"<strong style='color:var(--white)'>Daily reminder automation</strong><ol style='margin:6px 0 12px 18px'>"
+    +"<li>Shortcuts → <strong>Automation</strong> → <strong>+</strong> → <strong>Time of Day</strong> (e.g. 7:00 AM, daily).</li>"
+    +"<li>Choose <strong>Run Immediately</strong>, then pick the “Log fasting” shortcut.</li>"
+    +"<li>Repeat for medicines: e.g. 2:00 PM → <strong>Open URLs</strong> with the <em>After lunch</em> link.</li></ol>"
+    +"<strong style='color:#ffaa00'>Important:</strong> data is saved in this browser only. Links must open in the same browser at the same address you normally use "
+    +"(Safari ≠ a home-screen web app — they keep separate data).";
+  panel.appendChild(steps);
 }
 
 
@@ -1707,8 +1828,9 @@ if(!sg("nk-t-"+TODAY))ss("nk-t-"+TODAY,{});
     ss("nk-hsnap-2026-04-18",baseline);
   }
 })();
+handleShortcutURL();
 refreshHeader();
-renderTracker();
+setTab(curTab);
 </script>
 </body>
 </html>

@@ -246,6 +246,7 @@ const CAT={
   domestic: {c:"#86efac",l:"HOME ACTIVITY"},
   health:   {c:"#00c9a7",l:"HEALTH"},
   glucose:  {c:"#f472b6",l:"GLUCOSE CHECK"},
+  bp:       {c:"#60a5fa",l:"BLOOD PRESSURE"},
   medicine: {c:"#38bdf8",l:"MEDICINE"},
   food:     {c:"#a3e635",l:"NUTRITION"},
   work:     {c:"#a78bfa",l:"WORK"},
@@ -261,8 +262,9 @@ const WD=[
   {id:"w01",t:"5:00 AM",cat:"wake",    txt:"Wake up · 2 glasses warm water (lemon optional)"},
   {id:"w02",t:"5:10 AM",cat:"wake",    txt:"Bath & morning grooming (30 min)"},
   {id:"w03",t:"5:40 AM",cat:"spiritual",txt:"🕉 Gurucharitra reading (15 min — prayer included)"},
-  {id:"w04",t:"5:55 AM",cat:"domestic",txt:"🌿 Terrace cleaning · gardening · home maintenance (50–60 min)"},
-  {id:"w05",t:"6:55 AM",cat:"glucose", txt:"📊 Log FASTING glucose in Glucose tab → Target: <110 mg/dL"},
+  {id:"wbp",t:"6:05 AM",cat:"bp",      txt:"🩺 BP reading — sit quietly 5 min first · log in Glucose tab → Target: <130/80"},
+  {id:"w05",t:"6:15 AM",cat:"glucose", txt:"📊 Log FASTING glucose in Glucose tab → Target: <110 mg/dL"},
+  {id:"w04",t:"6:20 AM",cat:"domestic",txt:"🌿 Terrace cleaning · gardening · home maintenance (40 min)"},
   {id:"w06",t:"7:00 AM",cat:"health",  txt:"100 ml homemade kefir"},
   {id:"w07",t:"7:05 AM",cat:"medicine",txt:"Morning prescribed medicines"},
   {id:"w08",t:"7:10 AM",cat:"medicine",txt:"Morning supplements — CoQ10 · Omega-3 · D3+K2"},
@@ -300,6 +302,7 @@ const WE=[
   {id:"e02",t:"5:10 AM",cat:"wake",    txt:"Bath & morning grooming (30 min)"},
   {id:"e03",t:"5:40 AM",cat:"spiritual",txt:"🕉 Gurucharitra reading (15 min)"},
   {id:"e04",t:"5:55 AM",cat:"domestic",txt:"🌿 Lighter weekend activity — terrace / garden (30–40 min)"},
+  {id:"ebp",t:"6:35 AM",cat:"bp",      txt:"🩺 BP reading — sit quietly 5 min first · log in Glucose tab → Target: <130/80"},
   {id:"e05",t:"6:40 AM",cat:"glucose", txt:"📊 Log FASTING glucose in Glucose tab → Target: <110 mg/dL"},
   {id:"e06",t:"6:50 AM",cat:"health",  txt:"100 ml kefir · medicines · CoQ10 + Omega-3 + D3"},
   {id:"e07",t:"7:00 AM",cat:"food",    txt:"Light pre-ride breakfast — almonds · 2 eggs or paneer · 1 fruit"},
@@ -406,6 +409,25 @@ const sHealth = v=>ss("nk-health",v);
 // Lab values: HbA1c, fasting insulin, fasting glucose (for HOMA)
 const gLabs = d=>sg("nk-labs-"+d)||{};
 const sLabs = (d,v)=>ss("nk-labs-"+d,v);
+// Blood pressure: {sys, dia, pulse}
+const gBP = d=>sg("nk-bp-"+d)||null;
+const sBP = (d,v)=>ss("nk-bp-"+d,v);
+// <130/80 good · 130–139 or 80–89 elevated · ≥140/90 high · <90 systolic low
+function bpLevel(b){
+  if(!b) return null;
+  if(b.sys<90||b.dia<60) return {c:"#ffaa00",l:"↓ Low"};
+  if(b.sys>=140||b.dia>=90) return {c:"#ff7070",l:"↑ High"};
+  if(b.sys>=130||b.dia>=80) return {c:"#ffaa00",l:"Elevated"};
+  return {c:"#34d399",l:"✓ Good"};
+}
+function bpValid(sys,dia,pulse){
+  return sys>=60&&sys<=260&&dia>=30&&dia<=160&&sys>dia&&(!pulse||(pulse>=30&&pulse<=220));
+}
+function saveBP(d,sys,dia,pulse){
+  const v={sys,dia}; if(pulse)v.pulse=pulse; sBP(d,v);
+  const t=gT(d); t[isWE(d)?"ebp":"wbp"]=true; sT(d,t);
+}
+const bpText = b=>b.sys+"/"+b.dia+(b.pulse?" · "+b.pulse+" bpm":"");
 
 function allDates(){
   const out=[];
@@ -570,12 +592,13 @@ function renderTracker(){
     cl2.textContent=cat.l;
     topR.appendChild(tm); topR.appendChild(cl2);
     if(logV){const ch2=e("span","chip");ch2.textContent=logV+" mg/dL";topR.appendChild(ch2);}
+    if(item.cat==="bp"){const bp=gBP(curDate);if(bp){const ch3=e("span","chip");ch3.textContent=bp.sys+"/"+bp.dia;topR.appendChild(ch3);}}
     cnt.appendChild(topR);
     const txt=e("div","",{fontSize:"13px",lineHeight:"1.45",color:ticked?"var(--muted)":"var(--text)",textDecoration:ticked?"line-through":"none"});
     txt.textContent=item.txt; cnt.appendChild(txt);
     inner.appendChild(cnt); row.appendChild(inner);
     // Glucose → Glucose tab
-    if(isGlc&&!ticked&&!isFuture){
+    if((isGlc||item.cat==="bp")&&!ticked&&!isFuture){
       const hint=e("div","",{fontSize:"11px",color:"#f472b6",marginTop:"6px",paddingLeft:"32px",cursor:"pointer"});
       hint.innerHTML="Tap <strong>📊 Glucose tab</strong> above to enter your reading";
       hint.onclick=()=>setTab("glucose");
@@ -707,6 +730,41 @@ function openModal(dateStr,pct,done,total,glcVals,noteValStale){
 }
 
 // ─── RENDER GLUCOSE ──────────────────────────────────────
+function bpCard(){
+  const bp=gBP(curDate), lv=bpLevel(bp), isFuture=curDate>TODAY;
+  const card=e("div","gcrd",{border:"1px solid "+(lv?lv.c+"73":"var(--bdr)")});
+  const top=e("div","",{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"8px"});
+  const lft=e("div","",{flex:"1"});
+  const h=e("div","fw",{fontSize:"14px",color:"var(--white)"}); h.textContent="🩺 Blood Pressure"; lft.appendChild(h);
+  const sb=e("div","",{fontSize:"11px",color:"var(--muted)",marginTop:"2px"}); sb.textContent=(isWE(curDate)?"6:35":"6:05")+" AM · before fasting sugar"; lft.appendChild(sb);
+  const nt=e("div","",{fontSize:"11px",color:"#7a9ab8",marginTop:"3px",lineHeight:"1.45"});
+  nt.textContent="Sit quietly for 5 min, feet flat, arm resting at heart level. No tea/coffee before. Diabetes + stent makes BP control as important as sugar.";
+  lft.appendChild(nt); top.appendChild(lft);
+  const rgt=e("div","",{textAlign:"right",flexShrink:"0",marginLeft:"10px"});
+  if(bp){
+    const v=e("div","fw",{fontSize:"22px",color:lv.c}); v.textContent=bp.sys+"/"+bp.dia; rgt.appendChild(v);
+    const s2=e("div","",{fontSize:"10px",marginTop:"1px",color:lv.c}); s2.textContent=lv.l+(bp.pulse?" · "+bp.pulse+" bpm":""); rgt.appendChild(s2);
+  } else { const d=e("div","fw",{fontSize:"20px",color:"var(--muted)"}); d.textContent="—"; rgt.appendChild(d); }
+  const tg=e("div","",{fontSize:"9.5px",color:"var(--accent)",marginTop:"3px"}); tg.textContent="Target: < 130/80"; rgt.appendChild(tg);
+  top.appendChild(rgt); card.appendChild(top);
+  if(!isFuture){
+    const ir=e("div","",{display:"flex",gap:"6px",alignItems:"center"});
+    const mk=(ph,val)=>{const i=e("input","glc-in",{flex:"1",width:"auto",minWidth:"0"});i.type="number";i.inputMode="numeric";i.placeholder=ph;if(val)i.value=val;return i;};
+    const iS=mk("Upper",bp&&bp.sys), iD=mk("Lower",bp&&bp.dia), iP=mk("Pulse",bp&&bp.pulse);
+    const sl=e("span","",{color:"var(--muted)"}); sl.textContent="/";
+    const btn=e("button","glc-btn",{flexShrink:"0"}); btn.textContent=bp?"Update":"Save";
+    btn.onclick=()=>{
+      const sys=parseInt(iS.value),dia=parseInt(iD.value),pl=parseInt(iP.value)||0;
+      if(!bpValid(sys,dia,pl)){scToast("⚠️ Check the numbers — e.g. 128 / 82, pulse 72",false);return;}
+      saveBP(curDate,sys,dia,pl);
+      btn.textContent="✓ Saved!"; btn.style.background="#34d399";
+      setTimeout(()=>{renderGlucose();refreshHeader();},800);
+    };
+    ir.appendChild(iS); ir.appendChild(sl); ir.appendChild(iD); ir.appendChild(iP); ir.appendChild(btn);
+    card.appendChild(ir);
+  }
+  return card;
+}
 function renderGlucose(){
   const panel=document.getElementById("p-glucose");
   panel.innerHTML="";
@@ -791,6 +849,10 @@ function renderGlucose(){
     }
     return card;
   }
+
+  // ── Blood pressure ───────────────────────────────────────────────────
+  const lbBP=e("div","lbl"); lbBP.textContent="BLOOD PRESSURE — "+fShort(curDate); panel.appendChild(lbBP);
+  panel.appendChild(bpCard());
 
   // ── Section 1: Daily Glucose Readings ────────────────────────────────
   const lb1=e("div","lbl"); lb1.textContent="DAILY GLUCOSE READINGS — "+fShort(curDate); panel.appendChild(lb1);
@@ -1115,10 +1177,12 @@ function renderHistory(){
 
     const sub=e("div","",{fontSize:"11px",color:"var(--muted)",marginTop:"3px"});
     sub.textContent=done+" of "+sc.length+" tasks · "+glcVals.length+" glucose reading"+(glcVals.length!==1?"s":"");
+    const bpH=gBP(ds);
     lft.appendChild(sub);
 
-    if(glcVals.length>0){
+    if(glcVals.length>0||bpH){
       const chips=e("div","",{display:"flex",gap:"6px",marginTop:"6px",flexWrap:"wrap"});
+      if(bpH){const c=e("span","chip",{color:bpLevel(bpH).c}); c.textContent="BP "+bpH.sys+"/"+bpH.dia; chips.appendChild(c);}
       glcVals.forEach(v=>{const c=e("span","chip"); c.textContent=v+" mg/dL"; chips.appendChild(c);}); 
       lft.appendChild(chips);
     }
@@ -1143,6 +1207,40 @@ function renderHistory(){
 }
 
 // ─── RENDER HEALTH PROGRESS (charts) ────────────────────
+// Daily BP trend (last 30 readings): upper & lower lines with 130/80 target lines
+function bpChart(){
+  const wrap=e("div","chart-wrap");
+  const ct=e("div","chart-title"); ct.textContent="🩺 Blood Pressure (last 30 readings)"; wrap.appendChild(ct);
+  const pts=[];
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith("nk-bp-")){const v=sg(k);if(v&&v.sys)pts.push({d:k.slice(6),...v});}}
+  pts.sort((a,b)=>a.d<b.d?-1:1); const P=pts.slice(-30);
+  if(P.length<2){
+    const nd=e("div","chart-no-data");
+    nd.textContent=P.length?"Latest: "+bpText(P[0])+" · Target < 130/80. Log a few more mornings to see the trend.":"No BP readings yet — log it in the Glucose tab each morning.";
+    wrap.appendChild(nd); return wrap;
+  }
+  const W=360,H=140,L=34,R=8,T=10,B=24, ns="http://www.w3.org/2000/svg";
+  const all=P.flatMap(p=>[p.sys,p.dia]).concat([130,80]);
+  const mn=Math.min(...all)-8, mx=Math.max(...all)+8;
+  const x=i=>L+i*((W-L-R)/(P.length-1)), y=v=>T+(H-T-B)*(1-(v-mn)/(mx-mn));
+  const svg=document.createElementNS(ns,"svg"); svg.setAttribute("viewBox","0 0 "+W+" "+H); svg.setAttribute("class","chart-canvas");
+  const add=(tag,a)=>{const el=document.createElementNS(ns,tag);for(const k in a)el.setAttribute(k,a[k]);svg.appendChild(el);return el;};
+  [[130,"#60a5fa"],[80,"#a78bfa"]].forEach(([v,c])=>{
+    add("line",{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:c,"stroke-dasharray":"4 4","stroke-opacity":".5"});
+    const t=add("text",{x:L-4,y:y(v)+3,"text-anchor":"end","font-size":"9",fill:c}); t.textContent=v;
+  });
+  [["sys","#60a5fa"],["dia","#a78bfa"]].forEach(([k,c])=>{
+    add("polyline",{points:P.map((p,i)=>x(i)+","+y(p[k])).join(" "),fill:"none",stroke:c,"stroke-width":"2"});
+    P.forEach((p,i)=>add("circle",{cx:x(i),cy:y(p[k]),r:"3",fill:bpLevel(p).c}));
+  });
+  [0,P.length-1].forEach(i=>{const t=add("text",{x:x(i),y:H-6,"text-anchor":i?"end":"start","font-size":"9",fill:"#7a9ab8"});t.textContent=fShort(P[i].d);});
+  wrap.appendChild(svg);
+  const last=P[P.length-1], avg=k=>Math.round(P.reduce((s,p)=>s+p[k],0)/P.length);
+  const lg=e("div","",{fontSize:"11.5px",color:"var(--muted)",marginTop:"6px",lineHeight:"1.6"});
+  lg.innerHTML="<span style='color:#60a5fa'>━ Upper</span> &nbsp; <span style='color:#a78bfa'>━ Lower</span> &nbsp; dashed = target 130/80<br>Latest "+bpText(last)+" · Average "+avg("sys")+"/"+avg("dia");
+  wrap.appendChild(lg);
+  return wrap;
+}
 function renderProgress(){
   const panel=document.getElementById("p-progress"); panel.innerHTML="";
 
@@ -1298,6 +1396,7 @@ function renderProgress(){
   }
 
   // Render all charts
+  panel.appendChild(bpChart());
   panel.appendChild(makeChart("⚖️ Weight (kg)",           "#ff7040","weight","kg",89,  v=>v<=89));
   panel.appendChild(makeChart("📊 BMI",                   "#ff9933","bmi","",33,     v=>v<=33));
   panel.appendChild(makeChart("🧬 Biological Age (yrs)",  "#a78bfa","bioage","",70,   v=>v<=70));
@@ -1377,6 +1476,7 @@ function renderCurrentTab(){
 // iPhone Shortcuts (or any link) can log data by opening this page with URL params:
 //   ?log=fasting|breakfast|lunch|sleep&value=112   → saves a glucose reading
 //   ?take=m1,m3,s1  or  ?take=morning|lunch|night   → ticks medicines/supplements
+//   ?bp=128/82&pulse=72                             → saves blood pressure
 //   ?tab=glucose                                    → opens a tab
 //   &date=YYYY-MM-DD (optional, defaults to today)
 const SC_READINGS={fasting:["w05","e05","Fasting"],breakfast:["w12","e12","Post-breakfast"],lunch:["w19","e19","Post-lunch"],sleep:["w32","e31","Pre-sleep"]};
@@ -1410,6 +1510,12 @@ function handleShortcutURL(){
     else if(!v||isNaN(v)||v<20||v>600){msgs.push("Invalid glucose value");bad=true;}
     else{scSaveGlucose(d,isWE(d)?r[1]:r[0],v);msgs.push(r[2]+" "+v+" mg/dL saved");}
   }
+  const bpq=q.get("bp");
+  if(bpq){
+    const m=bpq.match(/^(\d{2,3})\D+(\d{2,3})$/), pl=parseInt(q.get("pulse"))||0;
+    if(m&&bpValid(+m[1],+m[2],pl)){saveBP(d,+m[1],+m[2],pl);msgs.push("BP "+m[1]+"/"+m[2]+" saved");}
+    else{msgs.push("Invalid BP '"+bpq+"'");bad=true;}
+  }
   const take=(q.get("take")||"").toLowerCase();
   if(take){
     const valid=new Set([...MEDS.map(m=>m.id),...SUPPS.map(s=>s.id)]);
@@ -1420,7 +1526,7 @@ function handleShortcutURL(){
   curDate=d;
   const tab=q.get("tab");
   if(tab&&SC_TABS.includes(tab)) curTab=tab;
-  else if(log) curTab="glucose"; else if(take) curTab="meds";
+  else if(log||bpq) curTab="glucose"; else if(take) curTab="meds";
   history.replaceState(null,"",scBase()); // so a reload doesn't log twice
   if(msgs.length) scToast((bad?"⚠️ ":"✅ ")+msgs.join(" · "),!bad);
 }
@@ -1453,7 +1559,7 @@ function renderShortcuts(){
   const lb0=e("div","lbl"); lb0.textContent="BUILD A LINK"; panel.appendChild(lb0);
   const bc=e("div","gcrd");
   const sel=e("select","glc-in",{width:"100%",marginBottom:"8px"});
-  [["fasting","Fasting glucose"],["breakfast","Post-breakfast glucose"],["lunch","Post-lunch glucose"],["sleep","Pre-sleep glucose"],
+  [["bp","Blood pressure"],["fasting","Fasting glucose"],["breakfast","Post-breakfast glucose"],["lunch","Post-lunch glucose"],["sleep","Pre-sleep glucose"],
    ["take:morning","Tick morning meds"],["take:lunch","Tick lunch meds"],["take:night","Tick night meds"]]
     .forEach(([v,t])=>{const o=document.createElement("option");o.value=v;o.textContent=t;sel.appendChild(o);});
   const inp=e("input","glc-in",{width:"100%",marginBottom:"8px"}); inp.type="number"; inp.placeholder="Value (mg/dL) — leave blank to ask each time";
@@ -1461,7 +1567,9 @@ function renderShortcuts(){
   function build(){
     const v=sel.value, isTake=v.startsWith("take:");
     inp.style.display=isTake?"none":"block";
-    const url=isTake?base+"?take="+v.slice(5):base+"?log="+v+"&value="+(inp.value||"[Provided Input]");
+    inp.placeholder=v==="bp"?"e.g. 128/82 — leave blank to ask each time":"Value (mg/dL) — leave blank to ask each time";
+    inp.type=v==="bp"?"text":"number";
+    const url=isTake?base+"?take="+v.slice(5):v==="bp"?base+"?bp="+(inp.value.replace(/\s/g,"")||"[Provided Input]"):base+"?log="+v+"&value="+(inp.value||"[Provided Input]");
     out.innerHTML=""; out.appendChild(linkRow(sel.options[sel.selectedIndex].text,url));
   }
   sel.onchange=build; inp.oninput=build;
@@ -1481,7 +1589,8 @@ function renderShortcuts(){
     +"<li>Open <strong>Shortcuts</strong> → <strong>+</strong> new shortcut.</li>"
     +"<li>Add <strong>Ask for Input</strong> → Type: <em>Number</em>, Prompt: “Fasting glucose?”.</li>"
     +"<li>Add <strong>URL</strong> → paste the glucose link from the builder, then replace <code>[Provided Input]</code> with the <em>Provided Input</em> variable.</li>"
-    +"<li>Add <strong>Open URLs</strong>. Name it “Log fasting” — now you can say <em>“Hey Siri, log fasting”</em>.</li></ol>"
+    +"<li>Add <strong>Open URLs</strong>. Name it “Log fasting” — now you can say <em>“Hey Siri, log fasting”</em>.</li>"
+    +"<li>For <strong>BP</strong>: same steps with the Blood pressure link, Input type <em>Text</em>, Prompt “BP? e.g. 128/82”.</li></ol>"
     +"<strong style='color:var(--white)'>Daily reminder automation</strong><ol style='margin:6px 0 12px 18px'>"
     +"<li>Shortcuts → <strong>Automation</strong> → <strong>+</strong> → <strong>Time of Day</strong> (e.g. 7:00 AM, daily).</li>"
     +"<li>Choose <strong>Run Immediately</strong>, then pick the “Log fasting” shortcut.</li>"
@@ -1818,6 +1927,7 @@ async function generateAIAnalysis(dateStr) {
   const taskPct   = Math.round(taskDone/sc.length*100);
   const medPct    = Math.round(medsDone/allMeds.length*100);
   const fasting   = glc["w05"]||glc["e05"]||"not logged";
+  const bpY       = gBP(dateStr);
   const postLun   = glc["w19"]||glc["e19"]||"not logged";
   const preSleep  = glc["w32"]||glc["e31"]||"not logged";
   const missedMeds = MEDS.filter(m=>!mds[m.id]).map(m=>m.name);
@@ -1836,6 +1946,7 @@ His goal: Reverse T2D following Dr. Ford Brewer's PrevMed low-carb insulin resis
 
 Yesterday's data (${fShort(dateStr)}):
 - Overall compliance: ${pct}% (Tasks: ${taskPct}%, Medicines: ${medPct}%)
+- Morning BP: ${bpY?bpText(bpY):"not logged"}
 - Fasting glucose: ${fasting} mg/dL
 - Post-lunch glucose: ${postLun} mg/dL
 - Pre-sleep glucose: ${preSleep} mg/dL

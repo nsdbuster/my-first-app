@@ -1014,6 +1014,68 @@ function renderMeds(){
   });
 }
 
+// ─── BACKUP & RESTORE ───────────────────────────────────
+// All dashboard data lives in localStorage under "nk-" keys. Backup saves them to a .json file;
+// restore reads one back. Restore merges: keys in the file overwrite, other keys are kept.
+function backupData(){
+  const data={};
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith("nk-"))data[k]=localStorage.getItem(k);}
+  return {app:"nk-health-dashboard",version:1,created:new Date().toISOString(),data};
+}
+async function doBackup(){
+  const name="health-backup-"+TODAY+".json";
+  const blob=new Blob([JSON.stringify(backupData())],{type:"application/json"});
+  const file=new File([blob],name,{type:"application/json"});
+  let saved=false;
+  // iPhone: share sheet → "Save to Files", iCloud Drive, WhatsApp, Mail…
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:"Health dashboard backup"});saved=true;}
+    catch(err){if(err&&err.name==="AbortError")return;}
+  }
+  if(!saved){
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  }
+  ss("nk-lastbackup",new Date().toISOString());
+  scToast("✅ Backup created — "+name,true);
+  if(curTab==="history")renderHistory();
+}
+function doRestore(file){
+  const rd=new FileReader();
+  rd.onload=()=>{
+    let obj; try{obj=JSON.parse(rd.result);}catch(err){scToast("⚠️ Not a valid backup file",false);return;}
+    const data=obj&&obj.app==="nk-health-dashboard"&&obj.data;
+    const keys=data?Object.keys(data).filter(k=>k.startsWith("nk-")&&typeof data[k]==="string"):[];
+    if(!keys.length){scToast("⚠️ Not a valid backup file",false);return;}
+    const days=keys.filter(k=>k.startsWith("nk-t-")).length;
+    const when=obj.created?new Date(obj.created).toLocaleString("en-IN"):"unknown date";
+    if(!confirm("Restore backup from "+when+"?\n\n"+days+" day(s) of records. Days in the backup will replace the same days on this device."))return;
+    try{keys.forEach(k=>localStorage.setItem(k,data[k]));}
+    catch(err){scToast("⚠️ Restore failed — storage full or blocked",false);return;}
+    scToast("✅ Restored "+days+" day(s)",true);
+    setTimeout(()=>location.reload(),1200);
+  };
+  rd.readAsText(file);
+}
+function backupCard(){
+  const c=e("div","card",{marginBottom:"14px"});
+  const h=e("div","fw",{fontSize:"14px",color:"var(--white)",marginBottom:"4px"}); h.textContent="💾 Backup & Restore";
+  const last=sg("nk-lastbackup");
+  const daysSince=last?Math.floor((Date.now()-new Date(last).getTime())/864e5):null;
+  const st=e("div","",{fontSize:"12px",lineHeight:"1.6",marginBottom:"10px",color:daysSince===null||daysSince>=7?"#ffaa00":"var(--muted)"});
+  st.textContent=last?"Last backup: "+new Date(last).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})+(daysSince>=7?" — time for a new one":"")
+    :"No backup yet. Your data lives only in this browser — back up weekly and save the file to iCloud Drive or Google Drive.";
+  const row=e("div","",{display:"flex",gap:"8px"});
+  const bb=e("button","glc-btn",{flex:"1",padding:"10px"}); bb.textContent="⬇️ Back up now"; bb.onclick=doBackup;
+  const rb=e("button","glc-btn",{flex:"1",padding:"10px",background:"transparent",color:"var(--white)",border:"1px solid var(--bdr)"}); rb.textContent="⬆️ Restore";
+  const fi=e("input"); fi.type="file"; fi.accept=".json,application/json"; fi.style.display="none";
+  fi.onchange=()=>{if(fi.files[0])doRestore(fi.files[0]);fi.value="";};
+  rb.onclick=()=>fi.click();
+  row.appendChild(bb); row.appendChild(rb);
+  c.appendChild(h); c.appendChild(st); c.appendChild(row); c.appendChild(fi);
+  return c;
+}
+
 // ─── RENDER HISTORY ──────────────────────────────────────
 function renderHistory(){
   const panel=document.getElementById("p-history"); panel.innerHTML="";
@@ -1021,6 +1083,7 @@ function renderHistory(){
   const ih=e("div","fw",{fontSize:"14px",color:"var(--white)",marginBottom:"4px"}); ih.textContent="📅 Your Health Journal";
   const is=e("div","",{fontSize:"12px",color:"var(--muted)",lineHeight:"1.6"}); is.textContent="Every day you use the dashboard is saved here. Tap any date to review that day's full record.";
   intro.appendChild(ih); intro.appendChild(is); panel.appendChild(intro);
+  panel.appendChild(backupCard());
 
   const dates=allDates();
   if(dates.length===0){

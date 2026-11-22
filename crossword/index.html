@@ -1,0 +1,275 @@
+<title>महाराष्ट्र शब्दकोडे</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Marathi&family=Mukta:wght@400;500;700&display=swap">
+<style>
+/* Layout: grid as the hero on the left, clue lists (आडवे / उभे) on the right; stacks on phones. Paithani peacock + turmeric. */
+:root{
+  --paper:#ECEFE8; --surface:#FAFBF7; --ink:#1A2423; --muted:#566663;
+  --block:#1D2928; --rule:#1D2928; --accent:#0E6A64; --accent-soft:#CFE6E1;
+  --sel:#F1C04B; --bad:#B3261E; --good:#2B7A4B; --chip:#E1E6DF;
+  --display:"Tiro Devanagari Marathi","Noto Serif Devanagari",serif;
+  --body:"Mukta","Noto Sans Devanagari",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0F1514; --surface:#1B2423; --ink:#E4EBE7; --muted:#93A5A0;
+  --block:#060909; --rule:#060909; --accent:#56BDB2; --accent-soft:#21413D;
+  --sel:#B98A22; --bad:#F08A80; --good:#6CC892; --chip:#212C2A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0F1514; --surface:#1B2423; --ink:#E4EBE7; --muted:#93A5A0;
+  --block:#060909; --rule:#060909; --accent:#56BDB2; --accent-soft:#21413D;
+  --sel:#B98A22; --bad:#F08A80; --good:#6CC892; --chip:#212C2A; color-scheme:dark}
+[hidden]{display:none!important}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;margin:0;text-wrap:balance}
+.meta{color:var(--muted);font-size:.95rem;margin:4px 0 0}
+.timer{font-family:var(--display);font-size:1.5rem;font-variant-numeric:tabular-nums;color:var(--accent)}
+.main{display:grid;grid-template-columns:minmax(0,600px) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:860px){.main{grid-template-columns:minmax(0,1fr)}}
+.board{display:flex;flex-direction:column;gap:12px;min-width:0}
+.cluebar{background:var(--accent);color:#fff;border-radius:6px;padding:10px 14px;min-height:3.2em;display:flex;gap:10px;align-items:baseline}
+.cluebar b{font-family:var(--display);font-weight:400;font-size:1.2rem;white-space:nowrap}
+.cluebar span{font-size:1.05rem}
+:root[data-theme="dark"] .cluebar{color:#06110F}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .cluebar{color:#06110F}}
+.grid{display:grid;grid-template-columns:repeat(11,1fr);width:100%;max-width:600px;aspect-ratio:1;background:var(--block);border:2px solid var(--rule);gap:2px;user-select:none}
+.cell{position:relative;background:var(--block)}
+.cell.on{background:var(--surface)}
+.cell.on.word{background:var(--accent-soft)}
+.cell.on.cur{background:var(--sel)}
+.cell .n{position:absolute;top:1px;left:3px;font-size:clamp(8px,1.6vw,11px);line-height:1;color:var(--muted);pointer-events:none;font-variant-numeric:tabular-nums}
+.cell.cur .n{color:var(--ink)}
+.cell input{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;text-align:center;padding:10% 0 0;
+  font-family:var(--display);font-size:clamp(14px,3.6vw,26px);color:var(--ink);caret-color:var(--accent);outline:none;border-radius:0}
+.cell.bad input{color:var(--bad);text-decoration:line-through;text-decoration-thickness:2px}
+.cell.rev input{color:var(--accent)}
+.cell.on:focus-within{box-shadow:inset 0 0 0 2px var(--ink)}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+button{font-family:var(--body);font-size:.95rem;border:1px solid var(--muted);background:transparent;color:var(--ink);border-radius:6px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.95rem}
+.msg{padding:12px 14px;border-radius:6px;border:1px solid var(--good);color:var(--good);font-size:1.05rem}
+.kbd{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--chip);padding-top:10px}
+.kbd .row{display:flex;flex-wrap:wrap;gap:4px}
+.kbd button{font-family:var(--display);font-size:1.1rem;min-width:2.3em;padding:4px 6px;background:var(--chip);border-color:transparent}
+.kbd button.wide{font-family:var(--body);font-size:.9rem}
+.kbd .lbl{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.clues{display:grid;grid-template-columns:1fr 1fr;gap:24px;min-width:0}
+@media (max-width:560px){.clues{grid-template-columns:1fr}}
+.clues h2{font-family:var(--display);font-weight:400;font-size:1.4rem;margin:0 0 8px;padding-bottom:4px;border-bottom:2px solid var(--ink)}
+.clues ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.clues li{display:grid;grid-template-columns:2.2em 1fr;gap:4px;padding:6px 8px;border-radius:4px;cursor:pointer;font-size:.98rem;line-height:1.45}
+.clues li:hover{background:var(--chip)}
+.clues li.act{background:var(--accent-soft)}
+.clues li.done .t{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--muted)}
+.clues li .num{font-family:var(--display);color:var(--accent);font-variant-numeric:tabular-nums}
+.clues li .len{color:var(--muted);font-size:.85em;white-space:nowrap}
+.help{color:var(--muted);font-size:.9rem;max-width:65ch;margin:0}
+@media (prefers-reduced-motion: no-preference){.cell{transition:background-color .12s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>महाराष्ट्र शब्दकोडे</h1>
+      <p class="meta">कोडे क्र. १ · ११ × ११ · <span id="wc"></span> शब्द · प्रत्येक घरात एक अक्षर (जोडाक्षरासह)</p>
+    </div>
+    <div class="timer" id="timer" aria-label="वेळ">००:००</div>
+  </header>
+
+  <div class="main">
+    <section class="board">
+      <div class="cluebar" id="cluebar"><b id="cbn"></b><span id="cbt"></span></div>
+      <div class="grid" id="grid" lang="mr"></div>
+      <div class="tools">
+        <button id="bCheck" class="primary">तपासा</button>
+        <button id="bRevL">अक्षर दाखवा</button>
+        <button id="bRevW">शब्द दाखवा</button>
+        <button id="bRevA">संपूर्ण उत्तर</button>
+        <button id="bClear">पुसा</button>
+        <button id="bKbd" aria-expanded="false">कळफलक</button>
+      </div>
+      <div class="confirm" id="confirm" hidden></div>
+      <div class="msg" id="msg" hidden></div>
+      <div class="kbd" id="kbd" hidden></div>
+      <p class="help">घरावर टिचकी मारा; पुन्हा टिचकी मारल्यास दिशा बदलते (Space नेही). मराठी कळफलकाने टाइप करा: “ष्ट्र” सारखे जोडाक्षर एकाच घरात राहते आणि नवे अक्षर सुरू झाले की पुढच्या घरात जाते. मराठी कळफलक नसल्यास वरील “कळफलक” वापरा. Enter/Tab ने पुढचा शब्द.</p>
+    </section>
+
+    <section class="clues">
+      <div><h2>आडवे</h2><ol id="clA"></ol></div>
+      <div><h2>उभे</h2><ol id="clD"></ol></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const N=11;
+const PUZ=[
+ {d:'A',r:1,c:2,a:'गो|दा|व|री',q:'त्र्यंबकेश्वरी उगम पावणारी ‘दक्षिण गंगा’'},
+ {d:'A',r:2,c:0,a:'दि|वा|ळी',q:'नरकचतुर्दशीपासून भाऊबीजेपर्यंत चालणारा दीपोत्सव'},
+ {d:'A',r:2,c:8,a:'आ|र|ती',q:'‘सुखकर्ता दुःखहर्ता’ — निरांजन ओवाळताना म्हणतात ती'},
+ {d:'A',r:4,c:1,a:'क|वि|ता',q:'पद्यरचना; बालकवींचे ‘औदुंबर’ ही अशीच एक'},
+ {d:'A',r:4,c:6,a:'ग|ण|प|ती',q:'चौदा विद्या आणि चौसष्ट कलांचा अधिपती'},
+ {d:'A',r:5,c:0,a:'वा|री',q:'आषाढी-कार्तिकीला पंढरीकडे निघणारी पायी यात्रा'},
+ {d:'A',r:5,c:3,a:'रा|य|ग|ड',q:'पूर्वीचा ‘रायरी’; १६७४ मध्ये येथे राज्याभिषेक झाला'},
+ {d:'A',r:6,c:7,a:'ना|ग|पू|र',q:'संत्र्यांचे शहर; विधिमंडळाच्या हिवाळी अधिवेशनाचे ठिकाण'},
+ {d:'A',r:7,c:3,a:'वे|रू|ळ',q:'एकाच खडकात वरून खाली कोरलेले कैलास मंदिर येथे आहे'},
+ {d:'A',r:8,c:0,a:'व|सं|त',q:'चैत्र-वैशाखाचा, ‘ऋतूंचा राजा’'},
+ {d:'A',r:8,c:7,a:'क|णा',q:'‘ओळखलत का सर मला?’ ने सुरू होणारी कुसुमाग्रजांची कविता'},
+ {d:'A',r:10,c:2,a:'शा|ही|र',q:'डफावर थाप देत पोवाडा गाणारा; अमर शेख हे असेच एक'},
+ {d:'D',r:0,c:2,a:'रां|गो|ळी',q:'ठिपके जोडून उंबरठ्यापुढे काढलेली नक्षी'},
+ {d:'D',r:0,c:4,a:'ला|व|णी',q:'पठ्ठे बापूराव, होनाजी बाळा यांनी गाजवलेला शृंगारिक गीतप्रकार'},
+ {d:'D',r:1,c:9,a:'स|र|स्व|ती',q:'वीणा-पुस्तकधारिणी, हंसवाहिनी विद्यादेवता'},
+ {d:'D',r:2,c:1,a:'वा|र|क|री',q:'गळ्यात तुळशीमाळ, मुखी ‘पुंडलिक वरदे’ — पंढरीचा यात्रेकरू'},
+ {d:'D',r:2,c:6,a:'सिं|ह|ग|ड',q:'‘गड आला पण सिंह गेला’; पूर्वीचा कोंढाणा'},
+ {d:'D',r:3,c:3,a:'सा|ता|रा',q:'कास पठार व अजिंक्यतारा असलेला जिल्हा'},
+ {d:'D',r:4,c:8,a:'प|तं|ग',q:'मकरसंक्रांतीला आकाशात ज्याची ‘काटाकाटी’ चालते'},
+ {d:'D',r:5,c:0,a:'वा|सु|दे|व',q:'मोरपिसांची टोपी घालून पहाटे ‘दान पावलं’ म्हणत येणारा'},
+ {d:'D',r:5,c:5,a:'ग|व|ळ|ण',q:'तमाशात गणानंतर येणारा कृष्ण-गोपींचा विनोदी प्रवेश'},
+ {d:'D',r:5,c:10,a:'ना|र|ळ',q:'श्रीफळ; कोकणच्या कल्पवृक्षाचे फळ'},
+ {d:'D',r:6,c:7,a:'ना|शि|क',q:'द्राक्षांची राजधानी; गोदातीरी कुंभमेळा भरतो ते शहर'},
+ {d:'D',r:8,c:2,a:'त|मा|शा',q:'ढोलकी-फडावरचे लोकनाट्य; ‘वग’ हा त्याचा मुख्य भाग'},
+];
+const dev=n=>String(n).replace(/\d/g,d=>'०१२३४५६७८९'[d]);
+const C='[\\u0915-\\u0939\\u0958-\\u095F\\u0978-\\u097F]';
+const V='[\\u0904-\\u0914\\u0960\\u0961\\u0972-\\u0977]';
+const CL=new RegExp(`(?:${C}\\u093C?(?:\\u094D\\u200D?${C}\\u093C?)*\\u094D?|${V})[\\u093E-\\u094C\\u0962\\u0963]*[\\u0900-\\u0903]*|[\\s\\S]`,'gu');
+const split=s=>(s.normalize('NFC').match(CL)||[]);
+
+// build solution
+const sol=[...Array(N)].map(()=>Array(N).fill(null));
+PUZ.forEach(e=>{e.cells=[];e.a.split('|').forEach((x,i)=>{const r=e.r+(e.d==='D'?i:0),c=e.c+(e.d==='A'?i:0);
+  if(sol[r][c]&&sol[r][c]!==x) console.error('clash',r,c);sol[r][c]=x.normalize('NFC');e.cells.push([r,c]);});});
+// numbering
+let k=0;const numAt={};
+for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(PUZ.some(e=>e.r===r&&e.c===c)){numAt[r+','+c]=++k;}}
+PUZ.forEach(e=>e.n=numAt[e.r+','+e.c]);
+document.getElementById('wc').textContent=dev(PUZ.length);
+
+const grid=document.getElementById('grid');const inp={},box={};
+for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+  const d=document.createElement('div');d.className='cell';
+  if(sol[r][c]){d.classList.add('on');
+    if(numAt[r+','+c]){const s=document.createElement('span');s.className='n';s.textContent=dev(numAt[r+','+c]);d.append(s);}
+    const i=document.createElement('input');i.id=`c${r}-${c}`;i.autocomplete='off';i.spellcheck=false;i.setAttribute('autocapitalize','off');
+    i.setAttribute('aria-label',`ओळ ${r+1}, स्तंभ ${c+1}`);d.append(i);inp[r+','+c]=i;box[r+','+c]=d;
+    i.addEventListener('mousedown',ev=>{if(document.activeElement===i){ev.preventDefault();toggleDir();}});
+    i.addEventListener('focus',()=>select(r,c));
+    i.addEventListener('input',ev=>{if(ev.isComposing)return;handle(r,c);});
+    i.addEventListener('compositionend',()=>handle(r,c));
+    i.addEventListener('keydown',ev=>key(ev,r,c));
+  }
+  grid.append(d);
+}
+// clue lists
+const li={};
+['A','D'].forEach(D=>{const ol=document.getElementById('cl'+D);
+  PUZ.filter(e=>e.d===D).sort((x,y)=>x.n-y.n).forEach(e=>{const l=document.createElement('li');
+    l.innerHTML=`<span class="num">${dev(e.n)}</span><span class="t">${e.q} <span class="len">(${dev(e.cells.length)})</span></span>`;
+    l.onclick=()=>{cur.dir=D;go(e.cells[0][0],e.cells[0][1]);};ol.append(l);li[e.n+D]=l;});});
+
+let cur={r:-1,c:-1,dir:'A'};
+const entryAt=(r,c,d)=>PUZ.find(e=>e.d===d&&e.cells.some(([a,b])=>a===r&&b===c));
+function select(r,c){
+  if(!entryAt(r,c,cur.dir))cur.dir=cur.dir==='A'?'D':'A';
+  cur.r=r;cur.c=c;paint();
+}
+function toggleDir(){const o=cur.dir==='A'?'D':'A';if(entryAt(cur.r,cur.c,o)){cur.dir=o;paint();}}
+function paint(){
+  Object.values(box).forEach(b=>b.classList.remove('word','cur'));
+  Object.values(li).forEach(l=>l.classList.remove('act'));
+  const e=entryAt(cur.r,cur.c,cur.dir);if(!e)return;
+  e.cells.forEach(([a,b])=>box[a+','+b].classList.add('word'));
+  box[cur.r+','+cur.c].classList.add('cur');
+  li[e.n+e.d].classList.add('act');
+  document.getElementById('cbn').textContent=dev(e.n)+(e.d==='A'?' आडवे':' उभे');
+  document.getElementById('cbt').textContent=e.q+' ('+dev(e.cells.length)+')';
+}
+function go(r,c){const i=inp[r+','+c];if(!i)return;i.focus();const L=i.value.length;try{i.setSelectionRange(L,L)}catch(_){}select(r,c);}
+function step(r,c,s){const e=entryAt(r,c,cur.dir);if(!e)return null;const ix=e.cells.findIndex(([a,b])=>a===r&&b===c)+s;return e.cells[ix]||null;}
+function handle(r,c){
+  start();const i=inp[r+','+c];const parts=split(i.value);
+  box[r+','+c].classList.remove('bad','rev');
+  if(parts.length<=1){i.value=parts[0]||'';save();return;}
+  i.value=parts[0];let pr=r,pc=c;
+  for(const p of parts.slice(1)){const n=step(pr,pc,1);if(!n)break;[pr,pc]=n;inp[pr+','+pc].value=p;box[pr+','+pc].classList.remove('bad','rev');}
+  go(pr,pc);save();
+}
+function key(ev,r,c){
+  const i=inp[r+','+c];
+  const mv={ArrowRight:[0,1,'A'],ArrowLeft:[0,-1,'A'],ArrowDown:[1,0,'D'],ArrowUp:[-1,0,'D']}[ev.key];
+  if(mv){ev.preventDefault();cur.dir=mv[2];let a=r+mv[0],b=c+mv[1];
+    while(a>=0&&b>=0&&a<N&&b<N){if(sol[a][b]){go(a,b);return;}a+=mv[0];b+=mv[1];}select(r,c);return;}
+  if(ev.key===' '){ev.preventDefault();toggleDir();return;}
+  if(ev.key==='Enter'||ev.key==='Tab'){ev.preventDefault();nextEntry(ev.shiftKey?-1:1);return;}
+  if(ev.key==='Backspace'&&i.value===''){ev.preventDefault();const p=step(r,c,-1);if(p){const j=inp[p[0]+','+p[1]];j.value=[...j.value].slice(0,-1).join('');go(p[0],p[1]);save();}}
+}
+function ordered(){return [...PUZ].sort((x,y)=>(x.d<y.d?-1:x.d>y.d?1:x.n-y.n));}
+function nextEntry(s){const o=ordered();const e=entryAt(cur.r,cur.c,cur.dir);let ix=(o.indexOf(e)+s+o.length)%o.length;
+  const t=o[ix];cur.dir=t.d;const blank=t.cells.find(([a,b])=>!inp[a+','+b].value)||t.cells[0];go(blank[0],blank[1]);}
+
+// tools
+const msg=document.getElementById('msg'),conf=document.getElementById('confirm');
+const eq=(r,c)=>inp[r+','+c].value.normalize('NFC')===sol[r][c];
+function check(){let bad=0;for(const k in inp){const [r,c]=k.split(',').map(Number);if(inp[k].value&&!eq(r,c)){box[k].classList.add('bad');bad++;}}
+  msg.hidden=false;msg.style.borderColor=bad?'var(--bad)':'var(--good)';msg.style.color=bad?'var(--bad)':'var(--good)';
+  const empty=Object.values(inp).filter(i=>!i.value).length;
+  msg.textContent=bad?`${dev(bad)} घरांतील अक्षरे चुकली आहेत (खोडलेली दाखवली).`+(empty?` ${dev(empty)} घरे अजून रिकामी.`:''):(empty?`आतापर्यंतची सर्व अक्षरे बरोबर. ${dev(empty)} घरे बाकी.`:'');
+  done();}
+function reveal(cells){cells.forEach(([r,c])=>{const k=r+','+c;if(!eq(r,c)){inp[k].value=sol[r][c];box[k].classList.remove('bad');box[k].classList.add('rev');}});save();done();}
+function ask(text,fn){conf.hidden=false;conf.innerHTML='';const s=document.createElement('span');s.textContent=text;
+  const y=document.createElement('button');y.className='primary';y.textContent='होय';y.onclick=()=>{conf.hidden=true;fn();};
+  const n=document.createElement('button');n.textContent='नको';n.onclick=()=>conf.hidden=true;conf.append(s,y,n);}
+document.getElementById('bCheck').onclick=check;
+document.getElementById('bRevL').onclick=()=>{if(cur.r>=0){reveal([[cur.r,cur.c]]);go(cur.r,cur.c);}};
+document.getElementById('bRevW').onclick=()=>{const e=entryAt(cur.r,cur.c,cur.dir);if(e)reveal(e.cells);};
+document.getElementById('bRevA').onclick=()=>ask('संपूर्ण उत्तर दाखवायचे?',()=>{reveal(Object.keys(inp).map(k=>k.split(',').map(Number)));});
+document.getElementById('bClear').onclick=()=>ask('सर्व घरे पुसायची? वेळ पुन्हा सुरू होईल.',()=>{for(const k in inp){inp[k].value='';box[k].classList.remove('bad','rev');}
+  t0=null;elapsed=0;finished=false;msg.hidden=true;tick();save();});
+
+// on-screen keyboard
+const KB=[['स्वर','अ आ इ ई उ ऊ ए ऐ ओ औ'],['चिन्हे','ा ि ी ु ू ृ े ै ो ौ ं ः ्'],
+ ['व्यंजने','क ख ग घ च छ ज झ ट ठ ड ढ ण त थ द ध न प फ ब भ म य र ल व श ष स ह ळ क्ष ज्ञ']];
+const kbd=document.getElementById('kbd');
+KB.forEach(([l,s])=>{const lb=document.createElement('div');lb.className='lbl';lb.textContent=l;const row=document.createElement('div');row.className='row';
+  s.split(' ').forEach(ch=>{const b=document.createElement('button');b.textContent=/^[ा-्ँ-ः]$/.test(ch)?'◌'+ch:ch;
+    b.onpointerdown=e=>e.preventDefault();b.onclick=()=>typeCh(ch);row.append(b);});kbd.append(lb,row);});
+const ctl=document.createElement('div');ctl.className='row';
+[['⌫ खोडा','bs'],['पुढील घर →','nx'],['दिशा ⇄','dir']].forEach(([t,a])=>{const b=document.createElement('button');b.className='wide';b.textContent=t;b.onpointerdown=e=>e.preventDefault();
+  b.onclick=()=>{if(cur.r<0)return;const i=inp[cur.r+','+cur.c];
+    if(a==='bs'){if(i.value){i.value=[...i.value].slice(0,-1).join('');save();}else{const p=step(cur.r,cur.c,-1);if(p){go(p[0],p[1]);}}}
+    if(a==='nx'){const n=step(cur.r,cur.c,1);if(n)go(n[0],n[1]);}
+    if(a==='dir'){toggleDir();}};ctl.append(b);});
+kbd.append(ctl);
+function typeCh(ch){if(cur.r<0){const e=ordered()[0];cur.dir=e.d;go(e.r,e.c);}const i=inp[cur.r+','+cur.c];i.value+=ch;handle(cur.r,cur.c);}
+const bK=document.getElementById('bKbd');
+bK.onclick=()=>{kbd.hidden=!kbd.hidden;bK.setAttribute('aria-expanded',String(!kbd.hidden));
+  Object.values(inp).forEach(i=>i.inputMode=kbd.hidden?'text':'none');try{localStorage.setItem('mrcw1k',kbd.hidden?'0':'1')}catch(_){}};
+
+// timer + persistence + completion
+let t0=null,elapsed=0,finished=false;
+function start(){if(!t0&&!finished)t0=Date.now()-elapsed*1000;}
+function secs(){return t0&&!finished?Math.floor((Date.now()-t0)/1000):elapsed;}
+function fmt(s){return dev(String(Math.floor(s/60)).padStart(2,'0'))+':'+dev(String(s%60).padStart(2,'0'));}
+function tick(){document.getElementById('timer').textContent=fmt(secs());}
+setInterval(()=>{if(t0&&!finished){elapsed=secs();tick();}},1000);
+function filled(){PUZ.forEach(e=>li[e.n+e.d].classList.toggle('done',e.cells.every(([a,b])=>inp[a+','+b].value)));}
+function done(){filled();if(finished)return;if(Object.keys(inp).every(k=>{const [r,c]=k.split(',').map(Number);return eq(r,c);})){
+  elapsed=secs();finished=true;tick();const used=Object.values(box).some(b=>b.classList.contains('rev'));
+  msg.hidden=false;msg.style.borderColor='var(--good)';msg.style.color='var(--good)';
+  msg.textContent=used?`कोडे पूर्ण! (काही अक्षरे मदतीने) वेळ ${fmt(elapsed)}.`:`शाब्बास! संपूर्ण कोडे स्वतः सोडवले — वेळ ${fmt(elapsed)}.`;save();}}
+function save(){filled();done();try{localStorage.setItem('mrcw1',JSON.stringify({v:Object.fromEntries(Object.entries(inp).map(([k,i])=>[k,i.value])),
+  rev:Object.keys(box).filter(k=>box[k].classList.contains('rev')),t:secs(),f:finished}))}catch(_){}}
+try{const s=JSON.parse(localStorage.getItem('mrcw1')||'null');if(s){for(const k in s.v)if(inp[k])inp[k].value=s.v[k];(s.rev||[]).forEach(k=>box[k]&&box[k].classList.add('rev'));
+  elapsed=s.t||0;finished=!!s.f;tick();filled();}
+  if(localStorage.getItem('mrcw1k')==='1')bK.click();}catch(_){}
+// start on 1 across
+const first=ordered()[0];cur.dir=first.d;select(first.r,first.c);
+</script>

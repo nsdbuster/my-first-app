@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="mr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>मराठी शब्दकोडी</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Marathi&family=Mukta:wght@400;500;700&display=swap">
+<style>
+/* Layout: series strip on top, grid on the left, clue lists right; answer card under the tools. Paithani peacock + turmeric. */
+:root{
+  --paper:#ECEFE8; --surface:#FAFBF7; --ink:#1A2423; --muted:#566663;
+  --block:#1D2928; --accent:#0E6A64; --on-accent:#FFFFFF; --accent-soft:#CFE6E1;
+  --sel:#F1C04B; --bad:#B3261E; --good:#2B7A4B; --chip:#E1E6DF;
+  --display:"Tiro Devanagari Marathi","Noto Serif Devanagari",serif;
+  --body:"Mukta","Noto Sans Devanagari",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0F1514; --surface:#1B2423; --ink:#E4EBE7; --muted:#93A5A0;
+  --block:#060909; --accent:#56BDB2; --on-accent:#06110F; --accent-soft:#21413D;
+  --sel:#B98A22; --bad:#F08A80; --good:#6CC892; --chip:#212C2A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0F1514; --surface:#1B2423; --ink:#E4EBE7; --muted:#93A5A0;
+  --block:#060909; --accent:#56BDB2; --on-accent:#06110F; --accent-soft:#21413D;
+  --sel:#B98A22; --bad:#F08A80; --good:#6CC892; --chip:#212C2A; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--paper);color:var(--ink);margin:0}
+body{font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.1;margin:0;text-wrap:balance}
+.meta{color:var(--muted);font-size:.95rem;margin:4px 0 0}
+.timer{font-family:var(--display);font-size:1.5rem;font-variant-numeric:tabular-nums;color:var(--accent)}
+.series{display:flex;gap:8px;align-items:center}
+.series .strip{display:flex;gap:6px;overflow-x:auto;padding:2px;flex:1;min-width:0;scrollbar-width:thin}
+.chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:0;padding:6px 12px;border-radius:8px;border:1px solid var(--chip);background:var(--surface);color:var(--ink);cursor:pointer;font-family:var(--body);text-align:left;line-height:1.25}
+.chip .k{font-family:var(--display);font-size:1.05rem}
+.chip .s{font-size:.78rem;color:var(--muted)}
+.chip.cur{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.chip.done .k::after{content:" ✓";color:var(--good)}
+.navbtn{flex:0 0 auto;width:40px;height:40px;border-radius:50%;padding:0;font-size:1.2rem}
+.lvl{display:inline-block;font-size:.8rem;padding:1px 8px;border-radius:99px;background:var(--chip);color:var(--ink);margin-left:6px;vertical-align:middle}
+.main{display:grid;grid-template-columns:minmax(0,600px) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:860px){.main{grid-template-columns:minmax(0,1fr)}}
+.board{display:flex;flex-direction:column;gap:12px;min-width:0}
+.cluebar{background:var(--accent);color:var(--on-accent);border-radius:6px;padding:10px 14px;min-height:3.2em;display:flex;gap:10px;align-items:baseline}
+.cluebar b{font-family:var(--display);font-weight:400;font-size:1.15rem;white-space:nowrap}
+.grid{display:grid;width:100%;max-width:600px;aspect-ratio:1;background:var(--block);border:2px solid var(--block);gap:2px;user-select:none}
+.cell{position:relative;background:var(--block);min-width:0}
+.cell.on{background:var(--surface)}
+.cell.on.word{background:var(--accent-soft)}
+.cell.on.cur{background:var(--sel)}
+.cell .n{position:absolute;top:1px;left:3px;font-size:clamp(7px,1.5vw,11px);line-height:1;color:var(--muted);pointer-events:none;font-variant-numeric:tabular-nums}
+.cell.cur .n{color:var(--ink)}
+.cell input{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;text-align:center;padding:10% 0 0;
+  font-family:var(--display);font-size:var(--fs,22px);color:var(--ink);caret-color:var(--accent);outline:none;border-radius:0}
+.cell.bad input{color:var(--bad);text-decoration:line-through;text-decoration-thickness:2px}
+.cell.rev input{color:var(--accent)}
+.cell.on:focus-within{box-shadow:inset 0 0 0 2px var(--ink)}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+button{font-family:var(--body);font-size:.95rem;border:1px solid var(--muted);background:transparent;color:var(--ink);border-radius:6px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.95rem}
+.msg{padding:12px 14px;border-radius:6px;border:1px solid var(--good);color:var(--good);font-size:1.05rem;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.kbd{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--chip);padding-top:10px}
+.kbd .row{display:flex;flex-wrap:wrap;gap:4px}
+.kbd button{font-family:var(--display);font-size:1.1rem;min-width:2.3em;padding:4px 6px;background:var(--chip);border-color:transparent}
+.kbd button.wide{font-family:var(--body);font-size:.9rem}
+.kbd .lbl{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+/* answer card */
+.anscard{border:2px dashed var(--accent);border-radius:10px;background:var(--surface);overflow:hidden}
+.anscard .cover{width:100%;border:0;border-radius:0;padding:18px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:transparent;color:var(--ink);text-align:left}
+.anscard .cover b{font-family:var(--display);font-weight:400;font-size:1.3rem;color:var(--accent)}
+.anscard .cover span{color:var(--muted);font-size:.92rem}
+.anscard .cover .go{font-size:1.6rem;color:var(--accent)}
+.anscard .body{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}
+.anscard.open{border-style:solid}
+.mini{display:grid;width:100%;max-width:420px;aspect-ratio:1;background:var(--block);gap:1px;border:1px solid var(--block)}
+.mini div{background:var(--block);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:var(--mfs,15px);padding-top:3px}
+.mini div.on{background:var(--surface);color:var(--accent)}
+.anslist{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.95rem}
+@media (max-width:480px){.anslist{grid-template-columns:1fr}}
+.anslist h3{font-family:var(--display);font-weight:400;font-size:1.1rem;margin:0 0 4px}
+.anslist p{margin:0;line-height:1.7}
+.anslist b{color:var(--accent);font-weight:500}
+.clues{display:grid;grid-template-columns:1fr 1fr;gap:24px;min-width:0}
+@media (max-width:560px){.clues{grid-template-columns:1fr}}
+.clues h2{font-family:var(--display);font-weight:400;font-size:1.4rem;margin:0 0 8px;padding-bottom:4px;border-bottom:2px solid var(--ink)}
+.clues ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.clues li{display:grid;grid-template-columns:2.2em 1fr;gap:4px;padding:5px 8px;border-radius:4px;cursor:pointer;font-size:.98rem;line-height:1.45}
+.clues li:hover{background:var(--chip)}
+.clues li.act{background:var(--accent-soft)}
+.clues li.done .t{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--muted)}
+.clues li .num{font-family:var(--display);color:var(--accent);font-variant-numeric:tabular-nums}
+.clues li .len{color:var(--muted);font-size:.85em;white-space:nowrap}
+.help{color:var(--muted);font-size:.9rem;max-width:65ch;margin:0}
+@media (prefers-reduced-motion: no-preference){.cell{transition:background-color .12s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="ptitle">मराठी शब्दकोडी</h1>
+      <p class="meta" id="pmeta"></p>
+    </div>
+    <div class="timer" id="timer" aria-label="वेळ">००:००</div>
+  </header>
+
+  <nav class="series" aria-label="कोडी">
+    <button class="navbtn" id="prev" aria-label="मागील कोडे">‹</button>
+    <div class="strip" id="strip"></div>
+    <button class="navbtn" id="next" aria-label="पुढील कोडे">›</button>
+  </nav>
+
+  <div class="main">
+    <section class="board">
+      <div class="cluebar"><b id="cbn"></b><span id="cbt"></span></div>
+      <div class="grid" id="grid" lang="mr"></div>
+      <div class="tools">
+        <button id="bCheck" class="primary">तपासा</button>
+        <button id="bRevL">अक्षर दाखवा</button>
+        <button id="bRevW">शब्द दाखवा</button>
+        <button id="bClear">पुसा</button>
+        <button id="bKbd" aria-expanded="false">कळफलक</button>
+      </div>
+      <div class="confirm" id="confirm" hidden></div>
+      <div class="msg" id="msg" hidden></div>
+      <div class="kbd" id="kbd" hidden></div>
+
+      <div class="anscard" id="anscard">
+        <button class="cover" id="ansCover" aria-expanded="false">
+          <div><b>उत्तर कार्ड</b><br><span id="ansHint">उत्तरे पाहण्यासाठी येथे टॅप करा</span></div>
+          <div class="go" aria-hidden="true">⤵</div>
+        </button>
+        <div class="body" id="ansBody" hidden>
+          <div class="mini" id="mini"></div>
+          <div class="anslist" id="anslist"></div>
+          <div class="tools">
+            <button id="ansFill">उत्तरे माझ्या ग्रिडमध्ये भरा</button>
+            <button id="ansHide">उत्तर कार्ड बंद करा</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="help">घरावर टिचकी मारा; पुन्हा टिचकी मारल्यास दिशा बदलते (Space नेही). मराठी कळफलकाने टाइप करा: जोडाक्षर एकाच घरात राहते आणि नवे अक्षर सुरू झाले की पुढच्या घरात जाते. मराठी कळफलक नसल्यास “कळफलक” वापरा. Enter/Tab ने पुढचा शब्द. प्रत्येक कोड्याची प्रगती या उपकरणावर जतन होते.</p>
+    </section>
+
+    <section class="clues">
+      <div><h2>आडवे</h2><ol id="clA"></ol></div>
+      <div><h2>उभे</h2><ol id="clD"></ol></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const X=x=>new TextDecoder().decode(Uint8Array.from(atob(x),c=>c.charCodeAt(0)).reverse());
+/*DATA*/
+const dev=n=>String(n).replace(/\d/g,d=>'०१२३४५६७८९'[d]);
+const C='[\\u0915-\\u0939\\u0958-\\u095F\\u0978-\\u097F]';
+const V='[\\u0904-\\u0914\\u0960\\u0961\\u0972-\\u0977]';
+const CL=new RegExp(`(?:${C}\\u093C?(?:\\u094D\\u200D?${C}\\u093C?)*\\u094D?|${V})[\\u093E-\\u094C\\u0962\\u0963]*[\\u0900-\\u0903]*|[\\s\\S]`,'gu');
+const split=s=>(s.normalize('NFC').match(CL)||[]);
+const $=id=>document.getElementById(id);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(_){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}}};
+
+let P,N,sol,inp,box,li,numAt,cur,t0,elapsed,finished,pi=0;
+
+// series strip
+SERIES.forEach((p,i)=>{const b=document.createElement('button');b.className='chip';b.id='chip'+i;
+  b.innerHTML=`<span class="k">कोडे ${dev(i+1)}</span><span class="s">${p.short} · ${p.level}</span>`;
+  b.onclick=()=>{location.hash='k'+(i+1)};$('strip').append(b);});
+$('prev').onclick=()=>{if(pi>0)location.hash='k'+pi};
+$('next').onclick=()=>{if(pi<SERIES.length-1)location.hash='k'+(pi+2)};
+function markDone(){SERIES.forEach((p,i)=>{const s=store.get('mrcw-'+p.id);$('chip'+i).classList.toggle('done',!!(s&&s.f));});}
+
+function load(i){
+  if(P)saveNow();
+  pi=i;P=SERIES[i];N=P.N;
+  P.entries.forEach(e=>{if(!e.cells){e.ak=X(e.a).split('|');e.cells=e.ak.map((x,k)=>[e.r+(e.d==='D'?k:0),e.c+(e.d==='A'?k:0)]);}});
+  sol=[...Array(N)].map(()=>Array(N).fill(null));
+  P.entries.forEach(e=>e.cells.forEach(([r,c],k)=>sol[r][c]=e.ak[k].normalize('NFC')));
+  numAt={};let k=0;
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(P.entries.some(e=>e.r===r&&e.c===c))numAt[r+','+c]=++k;
+  P.entries.forEach(e=>e.n=numAt[e.r+','+e.c]);
+  $('ptitle').textContent=P.title;
+  $('pmeta').innerHTML=`कोडे क्र. ${dev(i+1)} · ${dev(N)} × ${dev(N)} · ${dev(P.entries.length)} शब्द <span class="lvl">${P.level}</span>`;
+  document.title=P.title+' · मराठी शब्दकोडी';
+  SERIES.forEach((_,j)=>$('chip'+j).classList.toggle('cur',j===i));
+  $('chip'+i).scrollIntoView({block:'nearest',inline:'center'});
+  $('prev').disabled=i===0;$('next').disabled=i===SERIES.length-1;
+  // grid
+  const grid=$('grid');grid.innerHTML='';grid.style.gridTemplateColumns=`repeat(${N},1fr)`;
+  grid.style.setProperty('--fs',`clamp(12px,${(39/N).toFixed(2)}vw,${Math.round(290/N)}px)`);
+  inp={};box={};
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const d=document.createElement('div');d.className='cell';
+    if(sol[r][c]){d.classList.add('on');
+      if(numAt[r+','+c]){const s=document.createElement('span');s.className='n';s.textContent=dev(numAt[r+','+c]);d.append(s);}
+      const el=document.createElement('input');el.id=`c${r}-${c}`;el.autocomplete='off';el.spellcheck=false;el.setAttribute('autocapitalize','off');
+      el.setAttribute('aria-label',`ओळ ${r+1}, स्तंभ ${c+1}`);if(!$('kbd').hidden)el.inputMode='none';d.append(el);inp[r+','+c]=el;box[r+','+c]=d;
+      el.addEventListener('mousedown',ev=>{if(document.activeElement===el){ev.preventDefault();toggleDir();}});
+      el.addEventListener('focus',()=>select(r,c));
+      el.addEventListener('input',ev=>{if(ev.isComposing)return;handle(r,c);});
+      el.addEventListener('compositionend',()=>handle(r,c));
+      el.addEventListener('keydown',ev=>key(ev,r,c));
+    }
+    grid.append(d);
+  }
+  // clues
+  li={};
+  ['A','D'].forEach(D=>{const ol=$('cl'+D);ol.innerHTML='';
+    P.entries.filter(e=>e.d===D).sort((x,y)=>x.n-y.n).forEach(e=>{const l=document.createElement('li');
+      l.innerHTML=`<span class="num">${dev(e.n)}</span><span class="t">${e.q} <span class="len">(${dev(e.cells.length)})</span></span>`;
+      l.onclick=()=>{cur.dir=D;go(e.cells[0][0],e.cells[0][1]);};ol.append(l);li[e.n+D]=l;});});
+  // answer card
+  closeCard();buildCard();
+  // state
+  $('msg').hidden=true;$('confirm').hidden=true;
+  t0=null;elapsed=0;finished=false;
+  const s=store.get('mrcw-'+P.id);
+  if(s){for(const k in s.v)if(inp[k])inp[k].value=s.v[k];(s.rev||[]).forEach(k=>box[k]&&box[k].classList.add('rev'));elapsed=s.t||0;finished=!!s.f;}
+  if(finished)showDone(true);
+  tick();filled();
+  cur={r:-1,c:-1,dir:'A'};const first=ordered()[0];cur.dir=first.d;select(first.r,first.c);
+}
+
+function buildCard(){
+  const m=$('mini');m.innerHTML='';m.style.gridTemplateColumns=`repeat(${N},1fr)`;
+  m.style.setProperty('--mfs',`clamp(9px,${(30/N).toFixed(2)}vw,${Math.round(200/N)}px)`);
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){const d=document.createElement('div');if(sol[r][c]){d.className='on';d.textContent=sol[r][c];}m.append(d);}
+  const L=$('anslist');L.innerHTML='';
+  [['A','आडवे'],['D','उभे']].forEach(([D,t])=>{const w=document.createElement('div');
+    w.innerHTML=`<h3>${t}</h3><p>`+P.entries.filter(e=>e.d===D).sort((x,y)=>x.n-y.n).map(e=>`<b>${dev(e.n)}.</b> ${e.ak.join('')}`).join(' · ')+'</p>';L.append(w);});
+}
+function closeCard(){$('ansBody').hidden=true;$('anscard').classList.remove('open');$('ansCover').setAttribute('aria-expanded','false');$('ansHint').textContent='उत्तरे पाहण्यासाठी येथे टॅप करा';}
+$('ansCover').onclick=()=>{const open=$('ansBody').hidden;
+  if(!open){closeCard();return;}
+  $('ansBody').hidden=false;$('anscard').classList.add('open');$('ansCover').setAttribute('aria-expanded','true');$('ansHint').textContent='लपवण्यासाठी पुन्हा टॅप करा';};
+$('ansHide').onclick=closeCard;
+$('ansFill').onclick=()=>{reveal(Object.keys(inp).map(k=>k.split(',').map(Number)));closeCard();};
+
+const entryAt=(r,c,d)=>P.entries.find(e=>e.d===d&&e.cells.some(([a,b])=>a===r&&b===c));
+function select(r,c){if(!entryAt(r,c,cur.dir))cur.dir=cur.dir==='A'?'D':'A';cur.r=r;cur.c=c;paint();}
+function toggleDir(){const o=cur.dir==='A'?'D':'A';if(entryAt(cur.r,cur.c,o)){cur.dir=o;paint();}}
+function paint(){
+  Object.values(box).forEach(b=>b.classList.remove('word','cur'));
+  Object.values(li).forEach(l=>l.classList.remove('act'));
+  const e=entryAt(cur.r,cur.c,cur.dir);if(!e)return;
+  e.cells.forEach(([a,b])=>box[a+','+b].classList.add('word'));
+  box[cur.r+','+cur.c].classList.add('cur');li[e.n+e.d].classList.add('act');
+  $('cbn').textContent=dev(e.n)+(e.d==='A'?' आडवे':' उभे');
+  $('cbt').textContent=e.q+' ('+dev(e.cells.length)+')';
+}
+function go(r,c){const i=inp[r+','+c];if(!i)return;i.focus();const L=i.value.length;try{i.setSelectionRange(L,L)}catch(_){}select(r,c);}
+function step(r,c,s){const e=entryAt(r,c,cur.dir);if(!e)return null;const ix=e.cells.findIndex(([a,b])=>a===r&&b===c)+s;return e.cells[ix]||null;}
+function handle(r,c){
+  start();const i=inp[r+','+c];const parts=split(i.value);
+  box[r+','+c].classList.remove('bad','rev');
+  if(parts.length<=1){i.value=parts[0]||'';save();return;}
+  i.value=parts[0];let pr=r,pc=c;
+  for(const p of parts.slice(1)){const n=step(pr,pc,1);if(!n)break;[pr,pc]=n;inp[pr+','+pc].value=p;box[pr+','+pc].classList.remove('bad','rev');}
+  go(pr,pc);save();
+}
+function key(ev,r,c){
+  const i=inp[r+','+c];
+  const mv={ArrowRight:[0,1,'A'],ArrowLeft:[0,-1,'A'],ArrowDown:[1,0,'D'],ArrowUp:[-1,0,'D']}[ev.key];
+  if(mv){ev.preventDefault();cur.dir=mv[2];let a=r+mv[0],b=c+mv[1];
+    while(a>=0&&b>=0&&a<N&&b<N){if(sol[a][b]){go(a,b);return;}a+=mv[0];b+=mv[1];}select(r,c);return;}
+  if(ev.key===' '){ev.preventDefault();toggleDir();return;}
+  if(ev.key==='Enter'||ev.key==='Tab'){ev.preventDefault();nextEntry(ev.shiftKey?-1:1);return;}
+  if(ev.key==='Backspace'&&i.value===''){ev.preventDefault();const p=step(r,c,-1);if(p){const j=inp[p[0]+','+p[1]];j.value=[...j.value].slice(0,-1).join('');go(p[0],p[1]);save();}}
+}
+function ordered(){return [...P.entries].sort((x,y)=>(x.d<y.d?-1:x.d>y.d?1:x.n-y.n));}
+function nextEntry(s){const o=ordered();const e=entryAt(cur.r,cur.c,cur.dir);const t=o[(o.indexOf(e)+s+o.length)%o.length];
+  cur.dir=t.d;const blank=t.cells.find(([a,b])=>!inp[a+','+b].value)||t.cells[0];go(blank[0],blank[1]);}
+
+const msg=$('msg'),conf=$('confirm');
+const eq=(r,c)=>inp[r+','+c].value.normalize('NFC')===sol[r][c];
+function say(text,ok){msg.hidden=false;msg.style.borderColor=ok?'var(--good)':'var(--bad)';msg.style.color=ok?'var(--good)':'var(--bad)';msg.textContent=text;}
+function check(){let bad=0;for(const k in inp){const [r,c]=k.split(',').map(Number);if(inp[k].value&&!eq(r,c)){box[k].classList.add('bad');bad++;}}
+  const empty=Object.values(inp).filter(i=>!i.value).length;
+  if(bad)say(`${dev(bad)} घरांतील अक्षरे चुकली आहेत (खोडलेली दाखवली).`+(empty?` ${dev(empty)} घरे अजून रिकामी.`:''),false);
+  else if(empty)say(`आतापर्यंतची सर्व अक्षरे बरोबर. ${dev(empty)} घरे बाकी.`,true);
+  done();}
+function reveal(cells){cells.forEach(([r,c])=>{const k=r+','+c;if(!eq(r,c)){inp[k].value=sol[r][c];box[k].classList.remove('bad');box[k].classList.add('rev');}});save();}
+function ask(text,fn){conf.hidden=false;conf.innerHTML='';const s=document.createElement('span');s.textContent=text;
+  const y=document.createElement('button');y.className='primary';y.textContent='होय';y.onclick=()=>{conf.hidden=true;fn();};
+  const n=document.createElement('button');n.textContent='नको';n.onclick=()=>conf.hidden=true;conf.append(s,y,n);}
+$('bCheck').onclick=check;
+$('bRevL').onclick=()=>{if(cur.r>=0){reveal([[cur.r,cur.c]]);go(cur.r,cur.c);}};
+$('bRevW').onclick=()=>{const e=entryAt(cur.r,cur.c,cur.dir);if(e)reveal(e.cells);};
+$('bClear').onclick=()=>ask('या कोड्याची सर्व घरे पुसायची? वेळ पुन्हा सुरू होईल.',()=>{for(const k in inp){inp[k].value='';box[k].classList.remove('bad','rev');}
+  t0=null;elapsed=0;finished=false;msg.hidden=true;tick();save();});
+
+// on-screen keyboard
+const KB=[['स्वर','अ आ इ ई उ ऊ ऋ ए ऐ ओ औ'],['चिन्हे','ा ि ी ु ू ृ े ै ो ौ ं ः ्'],
+ ['व्यंजने','क ख ग घ च छ ज झ ट ठ ड ढ ण त थ द ध न प फ ब भ म य र ल व श ष स ह ळ क्ष ज्ञ']];
+const kbd=$('kbd');
+KB.forEach(([l,s])=>{const lb=document.createElement('div');lb.className='lbl';lb.textContent=l;const row=document.createElement('div');row.className='row';
+  s.split(' ').forEach(ch=>{const b=document.createElement('button');b.textContent=/^[ा-्ँ-ः]$/.test(ch)?'◌'+ch:ch;
+    b.onpointerdown=e=>e.preventDefault();b.onclick=()=>typeCh(ch);row.append(b);});kbd.append(lb,row);});
+const ctl=document.createElement('div');ctl.className='row';
+[['⌫ खोडा','bs'],['पुढील घर →','nx'],['दिशा ⇄','dir']].forEach(([t,a])=>{const b=document.createElement('button');b.className='wide';b.textContent=t;b.onpointerdown=e=>e.preventDefault();
+  b.onclick=()=>{if(cur.r<0)return;const i=inp[cur.r+','+cur.c];
+    if(a==='bs'){if(i.value){i.value=[...i.value].slice(0,-1).join('');save();}else{const p=step(cur.r,cur.c,-1);if(p)go(p[0],p[1]);}}
+    if(a==='nx'){const n=step(cur.r,cur.c,1);if(n)go(n[0],n[1]);}
+    if(a==='dir')toggleDir();};ctl.append(b);});
+kbd.append(ctl);
+function typeCh(ch){if(cur.r<0)return;const i=inp[cur.r+','+cur.c];i.value+=ch;handle(cur.r,cur.c);}
+const bK=$('bKbd');
+function setKbd(show){kbd.hidden=!show;bK.setAttribute('aria-expanded',String(show));Object.values(inp||{}).forEach(i=>i.inputMode=show?'none':'text');store.set('mrcw-kbd',show);}
+bK.onclick=()=>setKbd(kbd.hidden);
+
+// timer, persistence, completion
+function start(){if(!t0&&!finished)t0=Date.now()-elapsed*1000;}
+function secs(){return t0&&!finished?Math.floor((Date.now()-t0)/1000):elapsed;}
+function fmt(s){return dev(String(Math.floor(s/60)).padStart(2,'0'))+':'+dev(String(s%60).padStart(2,'0'));}
+function tick(){$('timer').textContent=fmt(secs());}
+setInterval(()=>{if(t0&&!finished){elapsed=secs();tick();}},1000);
+function filled(){P.entries.forEach(e=>li[e.n+e.d].classList.toggle('done',e.cells.every(([a,b])=>inp[a+','+b].value)));}
+function showDone(quiet){const used=Object.values(box).some(b=>b.classList.contains('rev'));
+  say(used?`कोडे पूर्ण! (काही अक्षरे मदतीने) वेळ ${fmt(elapsed)}.`:`शाब्बास! संपूर्ण कोडे स्वतः सोडवले — वेळ ${fmt(elapsed)}.`,true);
+  if(pi<SERIES.length-1){const b=document.createElement('button');b.className='primary';b.textContent='पुढील कोडे ›';b.onclick=()=>{location.hash='k'+(pi+2)};msg.append(b);}}
+function done(){if(finished)return;if(Object.keys(inp).every(k=>{const [r,c]=k.split(',').map(Number);return eq(r,c);})){
+  elapsed=secs();finished=true;tick();showDone();saveNow();markDone();}}
+function saveNow(){store.set('mrcw-'+P.id,{v:Object.fromEntries(Object.entries(inp).map(([k,i])=>[k,i.value])),
+  rev:Object.keys(box).filter(k=>box[k].classList.contains('rev')),t:secs(),f:finished});}
+function save(){filled();done();saveNow();}
+
+function route(){const m=/^#k(\d+)$/.exec(location.hash);let i=m?Math.min(Math.max(+m[1]-1,0),SERIES.length-1):(store.get('mrcw-last')??0);
+  store.set('mrcw-last',i);load(i);}
+window.addEventListener('hashchange',route);
+if(store.get('mrcw-kbd'))setKbd(true);
+markDone();route();
+</script>
+</body>
+</html>
